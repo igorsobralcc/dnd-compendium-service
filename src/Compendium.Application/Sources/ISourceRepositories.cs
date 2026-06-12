@@ -36,6 +36,8 @@ public interface ISourceVersionRepository
 {
     Task AddAsync(SourceVersion version, CancellationToken cancellationToken);
 
+    Task<SourceVersion?> GetByIdAsync(CompendiumEntityId id, CancellationToken cancellationToken);
+
     Task<bool> ExistsBySourceAndVersionAsync(
         CompendiumEntityId ruleSourceId,
         SourceVersionNumber versionNumber,

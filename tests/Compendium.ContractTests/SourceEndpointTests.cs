@@ -32,4 +32,23 @@ public sealed class SourceEndpointTests : IClassFixture<WebApplicationFactory<Pr
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Contains("compendium.sources.ruleset-code.invalid", body);
     }
+
+    [Fact]
+    public async Task Create_ability_returns_bad_request_for_invalid_code()
+    {
+        var response = await client.PostAsJsonAsync(
+            "/api/compendium/abilities",
+            new
+            {
+                RuleSourceId = Guid.NewGuid(),
+                SourceVersionId = Guid.NewGuid(),
+                Code = "strength score",
+                Name = "Strength"
+            });
+
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Contains("compendium.fundamentals.ability-code.invalid", body);
+    }
 }

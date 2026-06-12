@@ -1,3 +1,4 @@
+using Compendium.API.Fundamentals;
 using Compendium.API.Sources;
 using Compendium.Application;
 using Compendium.Infra;
@@ -36,6 +37,7 @@ app.MapGet(
     .WithName("GetCompendiumMetadata");
 
 app.MapSourceEndpoints();
+app.MapFundamentalEndpoints();
 
 app.MapHealthChecks(
     "/health",

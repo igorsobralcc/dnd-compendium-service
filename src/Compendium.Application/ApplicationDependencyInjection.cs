@@ -1,4 +1,5 @@
 using Compendium.Domain.SharedKernel;
+using Compendium.Application.Fundamentals;
 using Compendium.Application.Sources;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,6 +21,22 @@ public static class ApplicationDependencyInjection
         services.AddScoped<MarkSourceVersionAsCurrentUseCase>();
         services.AddScoped<GetCurrentSourceVersionQuery>();
         services.AddScoped<ListSourceVersionsQuery>();
+        services.AddScoped<CreateAbilityUseCase>();
+        services.AddScoped<UpdateAbilityUseCase>();
+        services.AddScoped<ListAbilitiesQuery>();
+        services.AddScoped<CreateSkillUseCase>();
+        services.AddScoped<UpdateSkillUseCase>();
+        services.AddScoped<ListSkillsQuery>();
+        services.AddScoped<CreateLanguageUseCase>();
+        services.AddScoped<UpdateLanguageUseCase>();
+        services.AddScoped<ListLanguagesQuery>();
+        services.AddScoped<CreateProficiencyUseCase>();
+        services.AddScoped<UpdateProficiencyUseCase>();
+        services.AddScoped<ListProficienciesQuery>();
+        services.AddScoped<CreateArmorTrainingCategoryUseCase>();
+        services.AddScoped<ListArmorTrainingCategoriesQuery>();
+        services.AddScoped<CreateHitDieUseCase>();
+        services.AddScoped<ListHitDiceQuery>();
 
         return services;
     }

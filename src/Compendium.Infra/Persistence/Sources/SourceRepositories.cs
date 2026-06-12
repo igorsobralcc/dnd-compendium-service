@@ -67,6 +67,9 @@ internal sealed class SourceVersionRepository : ISourceVersionRepository
     public async Task AddAsync(SourceVersion version, CancellationToken cancellationToken) =>
         await dbContext.SourceVersions.AddAsync(version, cancellationToken);
 
+    public Task<SourceVersion?> GetByIdAsync(CompendiumEntityId id, CancellationToken cancellationToken) =>
+        dbContext.SourceVersions.SingleOrDefaultAsync(version => version.Id == id, cancellationToken);
+
     public Task<bool> ExistsBySourceAndVersionAsync(
         CompendiumEntityId ruleSourceId,
         SourceVersionNumber versionNumber,
