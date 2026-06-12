@@ -52,6 +52,8 @@ public interface IProficiencyRepository
 {
     Task AddAsync(Proficiency proficiency, CancellationToken cancellationToken);
 
+    Task<bool> ExistsByIdAsync(CompendiumEntityId id, CancellationToken cancellationToken);
+
     Task<Proficiency?> GetByCodeAsync(ProficiencyCode code, CancellationToken cancellationToken);
 
     Task<bool> ExistsByCodeAsync(ProficiencyCode code, CancellationToken cancellationToken);
@@ -77,6 +79,8 @@ public interface IArmorTrainingCategoryRepository
 public interface IHitDieRepository
 {
     Task AddAsync(HitDie hitDie, CancellationToken cancellationToken);
+
+    Task<HitDie?> GetByIdAsync(CompendiumEntityId id, CancellationToken cancellationToken);
 
     Task<bool> ExistsByDieAsync(int die, CancellationToken cancellationToken);
 

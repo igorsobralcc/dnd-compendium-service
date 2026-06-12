@@ -1,4 +1,5 @@
 using Compendium.Infra.Persistence;
+using Compendium.Domain.Classes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -33,6 +34,17 @@ public sealed class CompendiumMigrationTests
         Assert.Contains((CompendiumDbContext.Schema, "ability_score_standard_values"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "ability_score_point_buy_costs"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "ability_score_roll_rules"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "classes"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "class_core_traits"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "class_primary_abilities"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "class_levels"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "class_level_spell_slots"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "class_proficiency_grants"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "class_weapon_mastery_count_by_level"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "class_spellcasting_progressions"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "class_spellcasting_level_rules"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "subclasses"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "subclass_features"), tables);
     }
 
     [Fact]
@@ -46,6 +58,7 @@ public sealed class CompendiumMigrationTests
         Assert.Contains("20260612005038_AddSourcesRulesetsAndVersions", migrations.Keys);
         Assert.Contains("20260612020556_AddFundamentalRuleData", migrations.Keys);
         Assert.Contains("20260612022105_AddAbilityScoreMethods", migrations.Keys);
+        Assert.Contains("20260612024509_AddClassesAndSubclasses", migrations.Keys);
     }
 
     [Fact]
@@ -84,6 +97,26 @@ public sealed class CompendiumMigrationTests
         Assert.Contains(abilityScoreMethodIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_ability_score_methods_code");
         Assert.Contains(pointBuyCostIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_ability_score_point_buy_costs_method_score");
         Assert.Contains(rollRuleIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_ability_score_roll_rules_method");
+    }
+
+    [Fact]
+    public void Class_model_enforces_progression_and_subclass_uniqueness()
+    {
+        using var dbContext = CreateContext();
+
+        var classIndexes = dbContext.Model.FindEntityType(typeof(CharacterClass))!.GetIndexes();
+        var levelIndexes = dbContext.Model.FindEntityType(typeof(ClassLevel))!.GetIndexes();
+        var primaryAbilityIndexes = dbContext.Model.FindEntityType(typeof(ClassPrimaryAbility))!.GetIndexes();
+        var spellSlotIndexes = dbContext.Model.FindEntityType(typeof(ClassLevelSpellSlot))!.GetIndexes();
+        var subclassIndexes = dbContext.Model.FindEntityType(typeof(CharacterSubclass))!.GetIndexes();
+        var subclassFeatureIndexes = dbContext.Model.FindEntityType(typeof(SubclassFeature))!.GetIndexes();
+
+        Assert.Contains(classIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_classes_code");
+        Assert.Contains(levelIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_class_levels_class_level");
+        Assert.Contains(primaryAbilityIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_class_primary_abilities_class_ability");
+        Assert.Contains(spellSlotIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_class_level_spell_slots_level_spell_level");
+        Assert.Contains(subclassIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_subclasses_class_code");
+        Assert.Contains(subclassFeatureIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_subclass_features_subclass_feature_level");
     }
 
     [Fact]

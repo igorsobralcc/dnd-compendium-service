@@ -86,6 +86,9 @@ internal sealed class ProficiencyRepository : IProficiencyRepository
     public async Task AddAsync(Proficiency proficiency, CancellationToken cancellationToken) =>
         await dbContext.Proficiencies.AddAsync(proficiency, cancellationToken);
 
+    public Task<bool> ExistsByIdAsync(CompendiumEntityId id, CancellationToken cancellationToken) =>
+        dbContext.Proficiencies.AnyAsync(proficiency => proficiency.Id == id, cancellationToken);
+
     public Task<Proficiency?> GetByCodeAsync(ProficiencyCode code, CancellationToken cancellationToken) =>
         dbContext.Proficiencies.SingleOrDefaultAsync(proficiency => proficiency.Code == code, cancellationToken);
 
@@ -141,6 +144,9 @@ internal sealed class HitDieRepository : IHitDieRepository
 
     public async Task AddAsync(HitDie hitDie, CancellationToken cancellationToken) =>
         await dbContext.HitDice.AddAsync(hitDie, cancellationToken);
+
+    public Task<HitDie?> GetByIdAsync(CompendiumEntityId id, CancellationToken cancellationToken) =>
+        dbContext.HitDice.SingleOrDefaultAsync(hitDie => hitDie.Id == id, cancellationToken);
 
     public Task<bool> ExistsByDieAsync(int die, CancellationToken cancellationToken) =>
         dbContext.HitDice.AnyAsync(hitDie => hitDie.Die == die, cancellationToken);

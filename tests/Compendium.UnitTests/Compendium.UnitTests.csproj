@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Compendium.Application\Compendium.Application.csproj" />
     <ProjectReference Include="..\..\src\Compendium.Domain\Compendium.Domain.csproj" />
   </ItemGroup>
 

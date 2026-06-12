@@ -1,5 +1,7 @@
+using Compendium.Domain.Classes;
 using Compendium.Domain.Fundamentals;
 using Compendium.Domain.Sources;
+using Compendium.Infra.Persistence.Classes;
 using Compendium.Infra.Persistence.Fundamentals;
 using Compendium.Infra.Persistence.Integration;
 using Compendium.Infra.Persistence.Sources;
@@ -51,6 +53,28 @@ public sealed class CompendiumDbContext : DbContext
 
     public DbSet<AbilityScoreRollRule> AbilityScoreRollRules => Set<AbilityScoreRollRule>();
 
+    public DbSet<CharacterClass> CharacterClasses => Set<CharacterClass>();
+
+    public DbSet<ClassCoreTraits> ClassCoreTraits => Set<ClassCoreTraits>();
+
+    public DbSet<ClassPrimaryAbility> ClassPrimaryAbilities => Set<ClassPrimaryAbility>();
+
+    public DbSet<ClassLevel> ClassLevels => Set<ClassLevel>();
+
+    public DbSet<ClassLevelSpellSlot> ClassLevelSpellSlots => Set<ClassLevelSpellSlot>();
+
+    public DbSet<ClassProficiencyGrant> ClassProficiencyGrants => Set<ClassProficiencyGrant>();
+
+    public DbSet<ClassWeaponMasteryCountByLevel> ClassWeaponMasteryCountsByLevel => Set<ClassWeaponMasteryCountByLevel>();
+
+    public DbSet<ClassSpellcastingProgression> ClassSpellcastingProgressions => Set<ClassSpellcastingProgression>();
+
+    public DbSet<ClassSpellcastingLevelRule> ClassSpellcastingLevelRules => Set<ClassSpellcastingLevelRule>();
+
+    public DbSet<CharacterSubclass> CharacterSubclasses => Set<CharacterSubclass>();
+
+    public DbSet<SubclassFeature> SubclassFeatures => Set<SubclassFeature>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(Schema);
@@ -71,5 +95,16 @@ public sealed class CompendiumDbContext : DbContext
         modelBuilder.ApplyConfiguration(new AbilityScoreStandardValueConfiguration());
         modelBuilder.ApplyConfiguration(new AbilityScorePointBuyCostConfiguration());
         modelBuilder.ApplyConfiguration(new AbilityScoreRollRuleConfiguration());
+        modelBuilder.ApplyConfiguration(new CharacterClassConfiguration());
+        modelBuilder.ApplyConfiguration(new ClassCoreTraitsConfiguration());
+        modelBuilder.ApplyConfiguration(new ClassPrimaryAbilityConfiguration());
+        modelBuilder.ApplyConfiguration(new ClassLevelConfiguration());
+        modelBuilder.ApplyConfiguration(new ClassLevelSpellSlotConfiguration());
+        modelBuilder.ApplyConfiguration(new ClassProficiencyGrantConfiguration());
+        modelBuilder.ApplyConfiguration(new ClassWeaponMasteryCountByLevelConfiguration());
+        modelBuilder.ApplyConfiguration(new ClassSpellcastingProgressionConfiguration());
+        modelBuilder.ApplyConfiguration(new ClassSpellcastingLevelRuleConfiguration());
+        modelBuilder.ApplyConfiguration(new CharacterSubclassConfiguration());
+        modelBuilder.ApplyConfiguration(new SubclassFeatureConfiguration());
     }
 }

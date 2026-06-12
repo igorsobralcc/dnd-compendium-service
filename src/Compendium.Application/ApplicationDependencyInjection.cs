@@ -1,4 +1,5 @@
 using Compendium.Domain.SharedKernel;
+using Compendium.Application.Classes;
 using Compendium.Application.Fundamentals;
 using Compendium.Application.Sources;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +40,16 @@ public static class ApplicationDependencyInjection
         services.AddScoped<ListHitDiceQuery>();
         services.AddScoped<CreateAbilityScoreMethodUseCase>();
         services.AddScoped<ListAbilityScoreMethodsQuery>();
+        services.AddScoped<CreateClassUseCase>();
+        services.AddScoped<UpdateClassUseCase>();
+        services.AddScoped<ListClassesQuery>();
+        services.AddScoped<GetClassDetailsQuery>();
+        services.AddScoped<ConfigureClassProgressionUseCase>();
+        services.AddScoped<GetClassProgressionQuery>();
+        services.AddScoped<CreateSubclassUseCase>();
+        services.AddScoped<LinkSubclassFeatureUseCase>();
+        services.AddScoped<ListSubclassesByClassQuery>();
+        services.AddScoped<GetSubclassDetailsQuery>();
 
         return services;
     }

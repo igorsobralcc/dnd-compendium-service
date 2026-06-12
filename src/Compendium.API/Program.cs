@@ -1,3 +1,4 @@
+using Compendium.API.Classes;
 using Compendium.API.Fundamentals;
 using Compendium.API.Sources;
 using Compendium.Application;
@@ -38,6 +39,7 @@ app.MapGet(
 
 app.MapSourceEndpoints();
 app.MapFundamentalEndpoints();
+app.MapClassEndpoints();
 
 app.MapHealthChecks(
     "/health",

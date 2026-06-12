@@ -1,6 +1,8 @@
+using Compendium.Application.Classes;
 using Compendium.Application.Fundamentals;
 using Compendium.Application.Sources;
 using Compendium.Infra.Persistence;
+using Compendium.Infra.Persistence.Classes;
 using Compendium.Infra.Persistence.Fundamentals;
 using Compendium.Infra.Persistence.Sources;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +44,8 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<IArmorTrainingCategoryRepository, ArmorTrainingCategoryRepository>();
         services.AddScoped<IHitDieRepository, HitDieRepository>();
         services.AddScoped<IAbilityScoreMethodRepository, AbilityScoreMethodRepository>();
+        services.AddScoped<ICharacterClassRepository, CharacterClassRepository>();
+        services.AddScoped<ICharacterSubclassRepository, CharacterSubclassRepository>();
 
         return services;
     }
