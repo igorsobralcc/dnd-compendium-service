@@ -41,6 +41,7 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<IProficiencyRepository, ProficiencyRepository>();
         services.AddScoped<IArmorTrainingCategoryRepository, ArmorTrainingCategoryRepository>();
         services.AddScoped<IHitDieRepository, HitDieRepository>();
+        services.AddScoped<IAbilityScoreMethodRepository, AbilityScoreMethodRepository>();
 
         return services;
     }

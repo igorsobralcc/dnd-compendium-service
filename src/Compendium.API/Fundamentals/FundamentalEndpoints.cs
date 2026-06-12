@@ -32,6 +32,9 @@ public static class FundamentalEndpoints
         group.MapPost("/hit-dice", CreateHitDie).WithName("CreateHitDie");
         group.MapGet("/hit-dice", ListHitDice).WithName("ListHitDice");
 
+        group.MapPost("/ability-score-methods", CreateAbilityScoreMethod).WithName("CreateAbilityScoreMethod");
+        group.MapGet("/ability-score-methods", ListAbilityScoreMethods).WithName("ListAbilityScoreMethods");
+
         return endpoints;
     }
 
@@ -231,6 +234,37 @@ public static class FundamentalEndpoints
         var result = await query.ExecuteAsync(cancellationToken);
         return result.IsSuccess ? Results.Ok(result.Value) : HttpErrorMapper.ToProblem(result.Error);
     }
+
+    private static async Task<IResult> CreateAbilityScoreMethod(
+        CreateAbilityScoreMethodRequest request,
+        CreateAbilityScoreMethodUseCase useCase,
+        CancellationToken cancellationToken)
+    {
+        var result = await useCase.ExecuteAsync(
+            new CreateAbilityScoreMethodCommand(
+                request.RuleSourceId,
+                request.SourceVersionId,
+                request.Code,
+                request.Name,
+                request.Type,
+                request.Rules,
+                request.StandardValues,
+                request.PointBuyCosts,
+                request.RollRule),
+            cancellationToken);
+
+        return result.IsSuccess
+            ? Results.Created($"/api/compendium/ability-score-methods/{result.Value.Code}", result.Value)
+            : HttpErrorMapper.ToProblem(result.Error);
+    }
+
+    private static async Task<IResult> ListAbilityScoreMethods(
+        ListAbilityScoreMethodsQuery query,
+        CancellationToken cancellationToken)
+    {
+        var result = await query.ExecuteAsync(cancellationToken);
+        return result.IsSuccess ? Results.Ok(result.Value) : HttpErrorMapper.ToProblem(result.Error);
+    }
 }
 
 public sealed record CreateAbilityRequest(Guid RuleSourceId, Guid SourceVersionId, string Code, string Name);
@@ -268,3 +302,14 @@ public sealed record CreateArmorTrainingCategoryRequest(
     int SortOrder);
 
 public sealed record CreateHitDieRequest(Guid RuleSourceId, Guid SourceVersionId, int Die);
+
+public sealed record CreateAbilityScoreMethodRequest(
+    Guid RuleSourceId,
+    Guid SourceVersionId,
+    string Code,
+    string Name,
+    AbilityScoreMethodType Type,
+    IReadOnlyCollection<CreateAbilityScoreMethodRuleCommand> Rules,
+    IReadOnlyCollection<int> StandardValues,
+    IReadOnlyCollection<CreateAbilityScorePointBuyCostCommand> PointBuyCosts,
+    CreateAbilityScoreRollRuleCommand? RollRule);

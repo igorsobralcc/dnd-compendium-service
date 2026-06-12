@@ -59,4 +59,80 @@ public sealed class FundamentalRuleTests
         Assert.True(hitDie.IsFailure);
         Assert.Equal("compendium.fundamentals.hit-die.invalid", hitDie.Error.Code);
     }
+
+    [Fact]
+    public void Standard_array_requires_six_ordered_values()
+    {
+        var method = AbilityScoreMethod.Create(
+            CompendiumEntityId.New(),
+            CompendiumEntityId.New(),
+            AbilityScoreMethodCode.Create("STANDARD_ARRAY").Value,
+            DisplayName.Create("Standard Array").Value,
+            AbilityScoreMethodType.StandardArray,
+            [],
+            [15, 14, 13],
+            [],
+            null,
+            DateTimeOffset.UtcNow);
+
+        Assert.True(method.IsFailure);
+        Assert.Equal("compendium.fundamentals.ability-score-method.standard-array-values.required", method.Error.Code);
+    }
+
+    [Fact]
+    public void Point_buy_requires_costs_by_score()
+    {
+        var method = AbilityScoreMethod.Create(
+            CompendiumEntityId.New(),
+            CompendiumEntityId.New(),
+            AbilityScoreMethodCode.Create("POINT_BUY").Value,
+            DisplayName.Create("Point Buy").Value,
+            AbilityScoreMethodType.PointBuy,
+            [],
+            [],
+            [],
+            null,
+            DateTimeOffset.UtcNow);
+
+        Assert.True(method.IsFailure);
+        Assert.Equal("compendium.fundamentals.ability-score-method.point-buy-costs.required", method.Error.Code);
+    }
+
+    [Fact]
+    public void Random_roll_requires_valid_drop_rule()
+    {
+        var method = AbilityScoreMethod.Create(
+            CompendiumEntityId.New(),
+            CompendiumEntityId.New(),
+            AbilityScoreMethodCode.Create("RANDOM_GENERATION").Value,
+            DisplayName.Create("Random Generation").Value,
+            AbilityScoreMethodType.RandomRoll,
+            [],
+            [],
+            [],
+            new AbilityScoreRollRuleInput(4, 6, 3, 4, 6),
+            DateTimeOffset.UtcNow);
+
+        Assert.True(method.IsFailure);
+        Assert.Equal("compendium.fundamentals.ability-score-method.roll-drop.invalid", method.Error.Code);
+    }
+
+    [Fact]
+    public void Ability_score_method_accepts_srd_random_generation()
+    {
+        var method = AbilityScoreMethod.Create(
+            CompendiumEntityId.New(),
+            CompendiumEntityId.New(),
+            AbilityScoreMethodCode.Create("RANDOM_GENERATION").Value,
+            DisplayName.Create("Random Generation").Value,
+            AbilityScoreMethodType.RandomRoll,
+            [new AbilityScoreMethodRuleInput(AbilityScoreMethodRuleCode.Create("GENERATED_SCORE_COUNT").Value, 6, null)],
+            [],
+            [],
+            new AbilityScoreRollRuleInput(4, 6, 3, 1, 6),
+            DateTimeOffset.UtcNow);
+
+        Assert.True(method.IsSuccess);
+        Assert.Single(method.Value.RollRules);
+    }
 }

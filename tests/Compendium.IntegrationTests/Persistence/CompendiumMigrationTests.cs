@@ -28,6 +28,11 @@ public sealed class CompendiumMigrationTests
         Assert.Contains((CompendiumDbContext.Schema, "proficiencies"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "armor_training_categories"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "hit_dice"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "ability_score_methods"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "ability_score_method_rules"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "ability_score_standard_values"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "ability_score_point_buy_costs"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "ability_score_roll_rules"), tables);
     }
 
     [Fact]
@@ -40,6 +45,7 @@ public sealed class CompendiumMigrationTests
         Assert.Contains("20260611210000_InitialCompendiumSchema", migrations.Keys);
         Assert.Contains("20260612005038_AddSourcesRulesetsAndVersions", migrations.Keys);
         Assert.Contains("20260612020556_AddFundamentalRuleData", migrations.Keys);
+        Assert.Contains("20260612022105_AddAbilityScoreMethods", migrations.Keys);
     }
 
     [Fact]
@@ -66,12 +72,18 @@ public sealed class CompendiumMigrationTests
         var languageIndexes = dbContext.Model.FindEntityType(typeof(Compendium.Domain.Fundamentals.Language))!.GetIndexes();
         var proficiencyIndexes = dbContext.Model.FindEntityType(typeof(Compendium.Domain.Fundamentals.Proficiency))!.GetIndexes();
         var hitDieIndexes = dbContext.Model.FindEntityType(typeof(Compendium.Domain.Fundamentals.HitDie))!.GetIndexes();
+        var abilityScoreMethodIndexes = dbContext.Model.FindEntityType(typeof(Compendium.Domain.Fundamentals.AbilityScoreMethod))!.GetIndexes();
+        var pointBuyCostIndexes = dbContext.Model.FindEntityType(typeof(Compendium.Domain.Fundamentals.AbilityScorePointBuyCost))!.GetIndexes();
+        var rollRuleIndexes = dbContext.Model.FindEntityType(typeof(Compendium.Domain.Fundamentals.AbilityScoreRollRule))!.GetIndexes();
 
         Assert.Contains(abilityIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_abilities_code");
         Assert.Contains(skillIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_skills_code");
         Assert.Contains(languageIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_languages_code");
         Assert.Contains(proficiencyIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_proficiencies_code");
         Assert.Contains(hitDieIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_hit_dice_die");
+        Assert.Contains(abilityScoreMethodIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_ability_score_methods_code");
+        Assert.Contains(pointBuyCostIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_ability_score_point_buy_costs_method_score");
+        Assert.Contains(rollRuleIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_ability_score_roll_rules_method");
     }
 
     [Fact]

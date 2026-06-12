@@ -38,6 +38,9 @@ public static class FundamentalErrors
     public static ApplicationError HitDieAlreadyExists(int die) =>
         new("compendium.hit-dice.die-conflict", $"Hit die d{die} already exists.", ApplicationErrorKind.Conflict);
 
+    public static ApplicationError AbilityScoreMethodCodeAlreadyExists(string code) =>
+        new("compendium.ability-score-methods.code-conflict", $"An ability score method with code '{code}' already exists.", ApplicationErrorKind.Conflict);
+
     public static ApplicationError SourceVersionNotFound(string id) =>
         new("compendium.source-versions.not-found", $"Source version '{id}' was not found.", ApplicationErrorKind.NotFound);
 

@@ -37,6 +37,8 @@ public static class ApplicationDependencyInjection
         services.AddScoped<ListArmorTrainingCategoriesQuery>();
         services.AddScoped<CreateHitDieUseCase>();
         services.AddScoped<ListHitDiceQuery>();
+        services.AddScoped<CreateAbilityScoreMethodUseCase>();
+        services.AddScoped<ListAbilityScoreMethodsQuery>();
 
         return services;
     }

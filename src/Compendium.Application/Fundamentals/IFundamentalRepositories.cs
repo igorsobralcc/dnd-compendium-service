@@ -84,3 +84,14 @@ public interface IHitDieRepository
 
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }
+
+public interface IAbilityScoreMethodRepository
+{
+    Task AddAsync(AbilityScoreMethod method, CancellationToken cancellationToken);
+
+    Task<bool> ExistsByCodeAsync(AbilityScoreMethodCode code, CancellationToken cancellationToken);
+
+    Task<IReadOnlyCollection<AbilityScoreMethod>> ListAsync(CancellationToken cancellationToken);
+
+    Task SaveChangesAsync(CancellationToken cancellationToken);
+}

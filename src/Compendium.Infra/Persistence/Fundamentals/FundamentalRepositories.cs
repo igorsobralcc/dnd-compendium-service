@@ -150,3 +150,28 @@ internal sealed class HitDieRepository : IHitDieRepository
 
     public Task SaveChangesAsync(CancellationToken cancellationToken) => dbContext.SaveChangesAsync(cancellationToken);
 }
+
+internal sealed class AbilityScoreMethodRepository : IAbilityScoreMethodRepository
+{
+    private readonly CompendiumDbContext dbContext;
+
+    public AbilityScoreMethodRepository(CompendiumDbContext dbContext) => this.dbContext = dbContext;
+
+    public async Task AddAsync(AbilityScoreMethod method, CancellationToken cancellationToken) =>
+        await dbContext.AbilityScoreMethods.AddAsync(method, cancellationToken);
+
+    public Task<bool> ExistsByCodeAsync(AbilityScoreMethodCode code, CancellationToken cancellationToken) =>
+        dbContext.AbilityScoreMethods.AnyAsync(method => method.Code == code, cancellationToken);
+
+    public async Task<IReadOnlyCollection<AbilityScoreMethod>> ListAsync(CancellationToken cancellationToken) =>
+        await dbContext.AbilityScoreMethods
+            .Include(method => method.Rules)
+            .Include(method => method.StandardValues)
+            .Include(method => method.PointBuyCosts)
+            .Include(method => method.RollRules)
+            .OrderBy(method => method.Type)
+            .ThenBy(method => method.Code)
+            .ToArrayAsync(cancellationToken);
+
+    public Task SaveChangesAsync(CancellationToken cancellationToken) => dbContext.SaveChangesAsync(cancellationToken);
+}

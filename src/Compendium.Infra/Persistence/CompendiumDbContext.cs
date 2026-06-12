@@ -41,6 +41,16 @@ public sealed class CompendiumDbContext : DbContext
 
     public DbSet<HitDie> HitDice => Set<HitDie>();
 
+    public DbSet<AbilityScoreMethod> AbilityScoreMethods => Set<AbilityScoreMethod>();
+
+    public DbSet<AbilityScoreMethodRule> AbilityScoreMethodRules => Set<AbilityScoreMethodRule>();
+
+    public DbSet<AbilityScoreStandardValue> AbilityScoreStandardValues => Set<AbilityScoreStandardValue>();
+
+    public DbSet<AbilityScorePointBuyCost> AbilityScorePointBuyCosts => Set<AbilityScorePointBuyCost>();
+
+    public DbSet<AbilityScoreRollRule> AbilityScoreRollRules => Set<AbilityScoreRollRule>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(Schema);
@@ -56,5 +66,10 @@ public sealed class CompendiumDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ProficiencyConfiguration());
         modelBuilder.ApplyConfiguration(new ArmorTrainingCategoryConfiguration());
         modelBuilder.ApplyConfiguration(new HitDieConfiguration());
+        modelBuilder.ApplyConfiguration(new AbilityScoreMethodConfiguration());
+        modelBuilder.ApplyConfiguration(new AbilityScoreMethodRuleConfiguration());
+        modelBuilder.ApplyConfiguration(new AbilityScoreStandardValueConfiguration());
+        modelBuilder.ApplyConfiguration(new AbilityScorePointBuyCostConfiguration());
+        modelBuilder.ApplyConfiguration(new AbilityScoreRollRuleConfiguration());
     }
 }

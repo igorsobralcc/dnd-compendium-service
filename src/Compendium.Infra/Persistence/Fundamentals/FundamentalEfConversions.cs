@@ -32,6 +32,12 @@ internal static class FundamentalEfConversions
     public static readonly ValueConverter<HitDieCode, string> HitDieCode =
         new(code => code.Value, value => ParseHitDieCode(value));
 
+    public static readonly ValueConverter<AbilityScoreMethodCode, string> AbilityScoreMethodCode =
+        new(code => code.Value, value => Domain.Fundamentals.AbilityScoreMethodCode.Create(value).Value);
+
+    public static readonly ValueConverter<AbilityScoreMethodRuleCode, string> AbilityScoreMethodRuleCode =
+        new(code => code.Value, value => Domain.Fundamentals.AbilityScoreMethodRuleCode.Create(value).Value);
+
     public static readonly ValueConverter<DisplayName, string> DisplayName =
         new(name => name.Value, value => Domain.Fundamentals.DisplayName.Create(value).Value);
 

@@ -94,6 +94,34 @@ public sealed record HitDieCode
     public override string ToString() => Value;
 }
 
+public sealed record AbilityScoreMethodCode
+{
+    public const int MaxLength = 80;
+
+    private AbilityScoreMethodCode(string value) => Value = value;
+
+    public string Value { get; }
+
+    public static Result<AbilityScoreMethodCode> Create(string? value) =>
+        FundamentalValueObjectFactory.CreateCode(value, "ability-score-method-code", v => new AbilityScoreMethodCode(v), MaxLength);
+
+    public override string ToString() => Value;
+}
+
+public sealed record AbilityScoreMethodRuleCode
+{
+    public const int MaxLength = 80;
+
+    private AbilityScoreMethodRuleCode(string value) => Value = value;
+
+    public string Value { get; }
+
+    public static Result<AbilityScoreMethodRuleCode> Create(string? value) =>
+        FundamentalValueObjectFactory.CreateCode(value, "ability-score-method-rule-code", v => new AbilityScoreMethodRuleCode(v), MaxLength);
+
+    public override string ToString() => Value;
+}
+
 public sealed record DisplayName
 {
     public const int MaxLength = 180;
@@ -117,6 +145,13 @@ public enum ProficiencyType
     SavingThrow = 5,
     Language = 6,
     Other = 7
+}
+
+public enum AbilityScoreMethodType
+{
+    StandardArray = 1,
+    PointBuy = 2,
+    RandomRoll = 3
 }
 
 file static class FundamentalValueObjectFactory
