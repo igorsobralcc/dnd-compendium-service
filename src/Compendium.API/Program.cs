@@ -1,3 +1,4 @@
+using Compendium.API.Sources;
 using Compendium.Application;
 using Compendium.Infra;
 using Compendium.Infra.Persistence;
@@ -33,6 +34,8 @@ app.MapGet(
             CompendiumDbContext.Schema,
             "v1")))
     .WithName("GetCompendiumMetadata");
+
+app.MapSourceEndpoints();
 
 app.MapHealthChecks(
     "/health",

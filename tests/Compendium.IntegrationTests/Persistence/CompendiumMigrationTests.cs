@@ -19,6 +19,9 @@ public sealed class CompendiumMigrationTests
         Assert.Contains((CompendiumDbContext.Schema, "integration_outbox"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "integration_outbox_fields"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "integration_inbox"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "rulesets"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "rule_sources"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "source_versions"), tables);
     }
 
     [Fact]
@@ -29,6 +32,21 @@ public sealed class CompendiumMigrationTests
         var migrations = dbContext.GetService<IMigrationsAssembly>().Migrations;
 
         Assert.Contains("20260611210000_InitialCompendiumSchema", migrations.Keys);
+        Assert.Contains("20260612005038_AddSourcesRulesetsAndVersions", migrations.Keys);
+    }
+
+    [Fact]
+    public void Source_model_enforces_ruleset_source_and_current_version_uniqueness()
+    {
+        using var dbContext = CreateContext();
+
+        var rulesetIndexes = dbContext.Model.FindEntityType(typeof(Compendium.Domain.Sources.Ruleset))!.GetIndexes();
+        var sourceIndexes = dbContext.Model.FindEntityType(typeof(Compendium.Domain.Sources.RuleSource))!.GetIndexes();
+        var versionIndexes = dbContext.Model.FindEntityType(typeof(Compendium.Domain.Sources.SourceVersion))!.GetIndexes();
+
+        Assert.Contains(rulesetIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_rulesets_code");
+        Assert.Contains(sourceIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_rule_sources_ruleset_code");
+        Assert.Contains(versionIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_source_versions_current_per_source");
     }
 
     [Fact]

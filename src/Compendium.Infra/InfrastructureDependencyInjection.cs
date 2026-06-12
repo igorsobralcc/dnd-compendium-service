@@ -1,4 +1,6 @@
+using Compendium.Application.Sources;
 using Compendium.Infra.Persistence;
+using Compendium.Infra.Persistence.Sources;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +29,10 @@ public static class InfrastructureDependencyInjection
                 npgsql => npgsql.MigrationsHistoryTable(
                     CompendiumDbContext.MigrationsHistoryTable,
                     CompendiumDbContext.Schema)));
+
+        services.AddScoped<IRulesetRepository, RulesetRepository>();
+        services.AddScoped<IRuleSourceRepository, RuleSourceRepository>();
+        services.AddScoped<ISourceVersionRepository, SourceVersionRepository>();
 
         return services;
     }
