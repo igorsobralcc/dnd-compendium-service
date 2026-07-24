@@ -1,7 +1,6 @@
 using Compendium.API.Classes;
 using Compendium.API.Features;
 using Compendium.API.Fundamentals;
-using Compendium.API.Origins;
 using Compendium.API.Sources;
 using Compendium.Application;
 using Compendium.Infra;
@@ -46,7 +45,6 @@ app.MapSourceEndpoints();
 app.MapFundamentalEndpoints();
 app.MapClassEndpoints();
 app.MapFeatureEndpoints();
-app.MapOriginEndpoints();
 
 app.MapHealthChecks(
     "/health",

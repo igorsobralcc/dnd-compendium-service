@@ -113,43 +113,4 @@ public sealed class SourceEndpointTests : IClassFixture<WebApplicationFactory<Pr
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Contains("compendium.classes.class-code.invalid", body);
     }
-
-    [Fact]
-    public async Task Create_species_returns_bad_request_for_invalid_code()
-    {
-        var response = await client.PostAsJsonAsync(
-            "/api/compendium/species",
-            new
-            {
-                RuleSourceId = Guid.NewGuid(),
-                SourceVersionId = Guid.NewGuid(),
-                Code = "high elf",
-                Name = "High Elf",
-                Description = (string?)null
-            });
-
-        var body = await response.Content.ReadAsStringAsync();
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains("compendium.origins.species-code.invalid", body);
-    }
-
-    [Fact]
-    public async Task Create_feat_returns_bad_request_for_unknown_category()
-    {
-        var response = await client.PostAsJsonAsync(
-            "/api/compendium/feats",
-            new
-            {
-                RuleSourceId = Guid.NewGuid(),
-                SourceVersionId = Guid.NewGuid(),
-                Code = "ALERT",
-                Name = "Alert",
-                Description = (string?)null,
-                Category = 999,
-                Repeatable = false
-            });
-
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
 }

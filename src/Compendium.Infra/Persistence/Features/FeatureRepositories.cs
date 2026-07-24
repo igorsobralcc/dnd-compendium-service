@@ -14,9 +14,6 @@ internal sealed class FeatureRepository : IFeatureRepository
     public async Task AddAsync(Feature feature, CancellationToken cancellationToken) =>
         await dbContext.Features.AddAsync(feature, cancellationToken);
 
-    public Task<bool> ExistsByIdAsync(CompendiumEntityId id, CancellationToken cancellationToken) =>
-        dbContext.Features.AnyAsync(feature => feature.Id == id, cancellationToken);
-
     public Task<Feature?> GetByCodeAsync(FeatureCode code, CancellationToken cancellationToken) =>
         DetailsQuery().SingleOrDefaultAsync(feature => feature.Code == code, cancellationToken);
 
