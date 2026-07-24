@@ -1,11 +1,13 @@
 using Compendium.Domain.Classes;
 using Compendium.Domain.Features;
 using Compendium.Domain.Fundamentals;
+using Compendium.Domain.Origins;
 using Compendium.Domain.Sources;
 using Compendium.Infra.Persistence.Classes;
 using Compendium.Infra.Persistence.Features;
 using Compendium.Infra.Persistence.Fundamentals;
 using Compendium.Infra.Persistence.Integration;
+using Compendium.Infra.Persistence.Origins;
 using Compendium.Infra.Persistence.Sources;
 using Microsoft.EntityFrameworkCore;
 
@@ -105,6 +107,24 @@ public sealed class CompendiumDbContext : DbContext
 
     public DbSet<ChoiceOption> ChoiceOptions => Set<ChoiceOption>();
 
+    public DbSet<Species> Species => Set<Species>();
+
+    public DbSet<Background> Backgrounds => Set<Background>();
+
+    public DbSet<Feat> Feats => Set<Feat>();
+
+    public DbSet<BackgroundAbilityOption> BackgroundAbilityOptions => Set<BackgroundAbilityOption>();
+
+    public DbSet<BackgroundAbilityBoostRule> BackgroundAbilityBoostRules => Set<BackgroundAbilityBoostRule>();
+
+    public DbSet<BackgroundFeatGrant> BackgroundFeatGrants => Set<BackgroundFeatGrant>();
+
+    public DbSet<BackgroundSkillProficiency> BackgroundSkillProficiencies => Set<BackgroundSkillProficiency>();
+
+    public DbSet<BackgroundToolProficiency> BackgroundToolProficiencies => Set<BackgroundToolProficiency>();
+
+    public DbSet<BackgroundStartingEquipmentRule> BackgroundStartingEquipmentRules => Set<BackgroundStartingEquipmentRule>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(Schema);
@@ -150,5 +170,14 @@ public sealed class CompendiumDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ChoiceSetConfiguration());
         modelBuilder.ApplyConfiguration(new ChoiceSetFilterConfiguration());
         modelBuilder.ApplyConfiguration(new ChoiceOptionConfiguration());
+        modelBuilder.ApplyConfiguration(new SpeciesConfiguration());
+        modelBuilder.ApplyConfiguration(new BackgroundConfiguration());
+        modelBuilder.ApplyConfiguration(new FeatConfiguration());
+        modelBuilder.ApplyConfiguration(new BackgroundAbilityOptionConfiguration());
+        modelBuilder.ApplyConfiguration(new BackgroundAbilityBoostRuleConfiguration());
+        modelBuilder.ApplyConfiguration(new BackgroundFeatGrantConfiguration());
+        modelBuilder.ApplyConfiguration(new BackgroundSkillProficiencyConfiguration());
+        modelBuilder.ApplyConfiguration(new BackgroundToolProficiencyConfiguration());
+        modelBuilder.ApplyConfiguration(new BackgroundStartingEquipmentRuleConfiguration());
     }
 }

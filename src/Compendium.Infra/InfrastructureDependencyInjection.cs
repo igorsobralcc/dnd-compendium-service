@@ -1,11 +1,13 @@
 using Compendium.Application.Classes;
 using Compendium.Application.Features;
 using Compendium.Application.Fundamentals;
+using Compendium.Application.Origins;
 using Compendium.Application.Sources;
 using Compendium.Infra.Persistence;
 using Compendium.Infra.Persistence.Classes;
 using Compendium.Infra.Persistence.Features;
 using Compendium.Infra.Persistence.Fundamentals;
+using Compendium.Infra.Persistence.Origins;
 using Compendium.Infra.Persistence.Sources;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -52,6 +54,9 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<IEffectSchemaRepository, EffectSchemaRepository>();
         services.AddScoped<IEntityPrerequisiteRepository, EntityPrerequisiteRepository>();
         services.AddScoped<IChoiceSetRepository, ChoiceSetRepository>();
+        services.AddScoped<ISpeciesRepository, SpeciesRepository>();
+        services.AddScoped<IBackgroundRepository, BackgroundRepository>();
+        services.AddScoped<IFeatRepository, FeatRepository>();
 
         return services;
     }

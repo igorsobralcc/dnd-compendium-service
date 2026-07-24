@@ -2,6 +2,7 @@ using Compendium.Domain.SharedKernel;
 using Compendium.Application.Classes;
 using Compendium.Application.Features;
 using Compendium.Application.Fundamentals;
+using Compendium.Application.Origins;
 using Compendium.Application.Sources;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -66,6 +67,20 @@ public static class ApplicationDependencyInjection
         services.AddScoped<AddChoiceFilterUseCase>();
         services.AddScoped<GetChoiceSetDetailsQuery>();
         services.AddScoped<ListChoiceSetsBySourceEntityQuery>();
+        services.AddScoped<CreateSpeciesUseCase>();
+        services.AddScoped<LinkSpeciesFeatureUseCase>();
+        services.AddScoped<ListSpeciesQuery>();
+        services.AddScoped<GetSpeciesDetailsQuery>();
+        services.AddScoped<CreateBackgroundUseCase>();
+        services.AddScoped<ConfigureBackgroundMechanicsUseCase>();
+        services.AddScoped<LinkBackgroundFeatureUseCase>();
+        services.AddScoped<ListBackgroundsQuery>();
+        services.AddScoped<GetBackgroundDetailsQuery>();
+        services.AddScoped<CreateFeatUseCase>();
+        services.AddScoped<LinkFeatFeatureUseCase>();
+        services.AddScoped<AddFeatPrerequisiteUseCase>();
+        services.AddScoped<ListFeatsQuery>();
+        services.AddScoped<GetFeatDetailsQuery>();
 
         return services;
     }

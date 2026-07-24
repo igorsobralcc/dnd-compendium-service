@@ -6,6 +6,7 @@ namespace Compendium.Application.Features;
 public interface IFeatureRepository
 {
     Task AddAsync(Feature feature, CancellationToken cancellationToken);
+    Task<bool> ExistsByIdAsync(CompendiumEntityId id, CancellationToken cancellationToken);
     Task<Feature?> GetByCodeAsync(FeatureCode code, CancellationToken cancellationToken);
     Task<bool> ExistsByCodeAsync(FeatureCode code, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<Feature>> ListAsync(CancellationToken cancellationToken);

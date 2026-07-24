@@ -1,5 +1,6 @@
 using Compendium.Infra.Persistence;
 using Compendium.Domain.Classes;
+using Compendium.Domain.Origins;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -45,6 +46,15 @@ public sealed class CompendiumMigrationTests
         Assert.Contains((CompendiumDbContext.Schema, "class_spellcasting_level_rules"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "subclasses"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "subclass_features"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "species"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "backgrounds"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "background_ability_options"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "background_ability_boost_rules"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "background_feat_grants"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "background_skill_proficiencies"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "background_tool_proficiencies"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "background_starting_equipment_rules"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "feats"), tables);
     }
 
     [Fact]
@@ -59,6 +69,7 @@ public sealed class CompendiumMigrationTests
         Assert.Contains("20260612020556_AddFundamentalRuleData", migrations.Keys);
         Assert.Contains("20260612022105_AddAbilityScoreMethods", migrations.Keys);
         Assert.Contains("20260612024509_AddClassesAndSubclasses", migrations.Keys);
+        Assert.Contains("20260724180705_AddSpeciesBackgroundsAndFeats", migrations.Keys);
     }
 
     [Fact]
@@ -132,6 +143,22 @@ public sealed class CompendiumMigrationTests
             .ToArray();
 
         Assert.Empty(jsonColumns);
+    }
+
+    [Fact]
+    public void Origin_model_enforces_canonical_and_relational_uniqueness()
+    {
+        using var dbContext = CreateContext();
+
+        var speciesIndexes = dbContext.Model.FindEntityType(typeof(Species))!.GetIndexes();
+        var backgroundIndexes = dbContext.Model.FindEntityType(typeof(Background))!.GetIndexes();
+        var featIndexes = dbContext.Model.FindEntityType(typeof(Feat))!.GetIndexes();
+        var abilityOptionIndexes = dbContext.Model.FindEntityType(typeof(BackgroundAbilityOption))!.GetIndexes();
+
+        Assert.Contains(speciesIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_species_code");
+        Assert.Contains(backgroundIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_backgrounds_code");
+        Assert.Contains(featIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_feats_code");
+        Assert.Contains(abilityOptionIndexes, index => index.IsUnique && index.GetDatabaseName() == "ux_background_ability_options_background_ability");
     }
 
     private static CompendiumDbContext CreateContext()
