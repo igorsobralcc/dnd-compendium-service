@@ -1,9 +1,11 @@
 using Compendium.Domain.Classes;
 using Compendium.Domain.Features;
+using Compendium.Domain.Equipment;
 using Compendium.Domain.Fundamentals;
 using Compendium.Domain.Sources;
 using Compendium.Infra.Persistence.Classes;
 using Compendium.Infra.Persistence.Features;
+using Compendium.Infra.Persistence.Equipment;
 using Compendium.Infra.Persistence.Fundamentals;
 using Compendium.Infra.Persistence.Integration;
 using Compendium.Infra.Persistence.Sources;
@@ -104,6 +106,24 @@ public sealed class CompendiumDbContext : DbContext
     public DbSet<ChoiceSetFilter> ChoiceSetFilters => Set<ChoiceSetFilter>();
 
     public DbSet<ChoiceOption> ChoiceOptions => Set<ChoiceOption>();
+    public DbSet<EquipmentItem> EquipmentItems => Set<EquipmentItem>();
+    public DbSet<Weapon> Weapons => Set<Weapon>();
+    public DbSet<WeaponProperty> WeaponProperties => Set<WeaponProperty>();
+    public DbSet<WeaponPropertyRule> WeaponPropertyRules => Set<WeaponPropertyRule>();
+    public DbSet<WeaponPropertyLink> WeaponPropertyLinks => Set<WeaponPropertyLink>();
+    public DbSet<WeaponPropertyLinkValue> WeaponPropertyLinkValues => Set<WeaponPropertyLinkValue>();
+    public DbSet<WeaponMasteryProperty> WeaponMasteryProperties => Set<WeaponMasteryProperty>();
+    public DbSet<WeaponMasteryEffect> WeaponMasteryEffects => Set<WeaponMasteryEffect>();
+    public DbSet<WeaponMasteryRequirement> WeaponMasteryRequirements => Set<WeaponMasteryRequirement>();
+    public DbSet<Armor> Armors => Set<Armor>();
+    public DbSet<ArmorAcRule> ArmorAcRules => Set<ArmorAcRule>();
+    public DbSet<ArmorDrawback> ArmorDrawbacks => Set<ArmorDrawback>();
+    public DbSet<Tool> Tools => Set<Tool>();
+    public DbSet<EquipmentPack> EquipmentPacks => Set<EquipmentPack>();
+    public DbSet<EquipmentPackItem> EquipmentPackItems => Set<EquipmentPackItem>();
+    public DbSet<StartingEquipmentRule> StartingEquipmentRules => Set<StartingEquipmentRule>();
+    public DbSet<StartingEquipmentGroup> StartingEquipmentGroups => Set<StartingEquipmentGroup>();
+    public DbSet<StartingEquipmentOption> StartingEquipmentOptions => Set<StartingEquipmentOption>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -150,5 +170,23 @@ public sealed class CompendiumDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ChoiceSetConfiguration());
         modelBuilder.ApplyConfiguration(new ChoiceSetFilterConfiguration());
         modelBuilder.ApplyConfiguration(new ChoiceOptionConfiguration());
+        modelBuilder.ApplyConfiguration(new EquipmentItemConfiguration());
+        modelBuilder.ApplyConfiguration(new WeaponConfiguration());
+        modelBuilder.ApplyConfiguration(new WeaponPropertyConfiguration());
+        modelBuilder.ApplyConfiguration(new WeaponPropertyRuleConfiguration());
+        modelBuilder.ApplyConfiguration(new WeaponPropertyLinkConfiguration());
+        modelBuilder.ApplyConfiguration(new WeaponPropertyLinkValueConfiguration());
+        modelBuilder.ApplyConfiguration(new WeaponMasteryPropertyConfiguration());
+        modelBuilder.ApplyConfiguration(new WeaponMasteryEffectConfiguration());
+        modelBuilder.ApplyConfiguration(new WeaponMasteryRequirementConfiguration());
+        modelBuilder.ApplyConfiguration(new ArmorConfiguration());
+        modelBuilder.ApplyConfiguration(new ArmorAcRuleConfiguration());
+        modelBuilder.ApplyConfiguration(new ArmorDrawbackConfiguration());
+        modelBuilder.ApplyConfiguration(new ToolConfiguration());
+        modelBuilder.ApplyConfiguration(new EquipmentPackConfiguration());
+        modelBuilder.ApplyConfiguration(new EquipmentPackItemConfiguration());
+        modelBuilder.ApplyConfiguration(new StartingEquipmentRuleConfiguration());
+        modelBuilder.ApplyConfiguration(new StartingEquipmentGroupConfiguration());
+        modelBuilder.ApplyConfiguration(new StartingEquipmentOptionConfiguration());
     }
 }

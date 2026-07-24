@@ -1,5 +1,6 @@
 using Compendium.API.Classes;
 using Compendium.API.Features;
+using Compendium.API.Equipment;
 using Compendium.API.Fundamentals;
 using Compendium.API.Sources;
 using Compendium.Application;
@@ -45,6 +46,7 @@ app.MapSourceEndpoints();
 app.MapFundamentalEndpoints();
 app.MapClassEndpoints();
 app.MapFeatureEndpoints();
+app.MapEquipmentEndpoints();
 
 app.MapHealthChecks(
     "/health",

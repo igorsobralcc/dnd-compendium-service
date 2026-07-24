@@ -1,10 +1,12 @@
 using Compendium.Application.Classes;
 using Compendium.Application.Features;
+using Compendium.Application.Equipment;
 using Compendium.Application.Fundamentals;
 using Compendium.Application.Sources;
 using Compendium.Infra.Persistence;
 using Compendium.Infra.Persistence.Classes;
 using Compendium.Infra.Persistence.Features;
+using Compendium.Infra.Persistence.Equipment;
 using Compendium.Infra.Persistence.Fundamentals;
 using Compendium.Infra.Persistence.Sources;
 using Microsoft.EntityFrameworkCore;
@@ -52,6 +54,14 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<IEffectSchemaRepository, EffectSchemaRepository>();
         services.AddScoped<IEntityPrerequisiteRepository, EntityPrerequisiteRepository>();
         services.AddScoped<IChoiceSetRepository, ChoiceSetRepository>();
+        services.AddScoped<IEquipmentRepository, EquipmentRepository>();
+        services.AddScoped<IWeaponRepository, WeaponRepository>();
+        services.AddScoped<IWeaponPropertyRepository, WeaponPropertyRepository>();
+        services.AddScoped<IWeaponMasteryRepository, WeaponMasteryRepository>();
+        services.AddScoped<IArmorRepository, ArmorRepository>();
+        services.AddScoped<IToolRepository, ToolRepository>();
+        services.AddScoped<IEquipmentPackRepository, EquipmentPackRepository>();
+        services.AddScoped<IStartingEquipmentRuleRepository, StartingEquipmentRuleRepository>();
 
         return services;
     }

@@ -1,6 +1,7 @@
 using Compendium.Domain.SharedKernel;
 using Compendium.Application.Classes;
 using Compendium.Application.Features;
+using Compendium.Application.Equipment;
 using Compendium.Application.Fundamentals;
 using Compendium.Application.Sources;
 using Microsoft.Extensions.DependencyInjection;
@@ -66,6 +67,24 @@ public static class ApplicationDependencyInjection
         services.AddScoped<AddChoiceFilterUseCase>();
         services.AddScoped<GetChoiceSetDetailsQuery>();
         services.AddScoped<ListChoiceSetsBySourceEntityQuery>();
+        services.AddScoped<CreateEquipmentItemUseCase>();
+        services.AddScoped<UpdateEquipmentItemUseCase>();
+        services.AddScoped<ListEquipmentItemsQuery>();
+        services.AddScoped<GetEquipmentItemDetailsQuery>();
+        services.AddScoped<CreateWeaponUseCase>();
+        services.AddScoped<AttachWeaponPropertyUseCase>();
+        services.AddScoped<CreateWeaponPropertyUseCase>();
+        services.AddScoped<ConfigureWeaponMasteryUseCase>();
+        services.AddScoped<ListWeaponsQuery>();
+        services.AddScoped<GetWeaponDetailsQuery>();
+        services.AddScoped<CreateArmorUseCase>();
+        services.AddScoped<ConfigureArmorAcRuleUseCase>();
+        services.AddScoped<ListArmorsQuery>();
+        services.AddScoped<GetArmorDetailsQuery>();
+        services.AddScoped<CreateToolUseCase>();
+        services.AddScoped<CreateEquipmentPackUseCase>();
+        services.AddScoped<CreateStartingEquipmentRuleUseCase>();
+        services.AddScoped<GetStartingEquipmentRuleQuery>();
 
         return services;
     }
