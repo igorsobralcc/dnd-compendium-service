@@ -1,4 +1,5 @@
 using Compendium.API.Classes;
+using Compendium.API.Features;
 using Compendium.API.Fundamentals;
 using Compendium.API.Sources;
 using Compendium.Application;
@@ -10,6 +11,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services
@@ -23,7 +26,8 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.MapGet("/", () => Results.Ok(new ServiceStatusResponse("dnd-compendium-service", "running")))
@@ -40,6 +44,7 @@ app.MapGet(
 app.MapSourceEndpoints();
 app.MapFundamentalEndpoints();
 app.MapClassEndpoints();
+app.MapFeatureEndpoints();
 
 app.MapHealthChecks(
     "/health",

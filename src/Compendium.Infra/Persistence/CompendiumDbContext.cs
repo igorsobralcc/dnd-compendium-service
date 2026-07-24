@@ -1,7 +1,9 @@
 using Compendium.Domain.Classes;
+using Compendium.Domain.Features;
 using Compendium.Domain.Fundamentals;
 using Compendium.Domain.Sources;
 using Compendium.Infra.Persistence.Classes;
+using Compendium.Infra.Persistence.Features;
 using Compendium.Infra.Persistence.Fundamentals;
 using Compendium.Infra.Persistence.Integration;
 using Compendium.Infra.Persistence.Sources;
@@ -75,6 +77,34 @@ public sealed class CompendiumDbContext : DbContext
 
     public DbSet<SubclassFeature> SubclassFeatures => Set<SubclassFeature>();
 
+    public DbSet<Feature> Features => Set<Feature>();
+
+    public DbSet<ClassLevelFeature> ClassLevelFeatures => Set<ClassLevelFeature>();
+
+    public DbSet<SpeciesFeature> SpeciesFeatures => Set<SpeciesFeature>();
+
+    public DbSet<BackgroundFeature> BackgroundFeatures => Set<BackgroundFeature>();
+
+    public DbSet<FeatFeature> FeatFeatures => Set<FeatFeature>();
+
+    public DbSet<EffectSchema> EffectSchemas => Set<EffectSchema>();
+
+    public DbSet<EffectSchemaField> EffectSchemaFields => Set<EffectSchemaField>();
+
+    public DbSet<FeatureEffect> FeatureEffects => Set<FeatureEffect>();
+
+    public DbSet<FeatureEffectFieldValue> FeatureEffectFieldValues => Set<FeatureEffectFieldValue>();
+
+    public DbSet<FeatureEffectCondition> FeatureEffectConditions => Set<FeatureEffectCondition>();
+
+    public DbSet<EntityPrerequisite> EntityPrerequisites => Set<EntityPrerequisite>();
+
+    public DbSet<ChoiceSet> ChoiceSets => Set<ChoiceSet>();
+
+    public DbSet<ChoiceSetFilter> ChoiceSetFilters => Set<ChoiceSetFilter>();
+
+    public DbSet<ChoiceOption> ChoiceOptions => Set<ChoiceOption>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(Schema);
@@ -106,5 +136,19 @@ public sealed class CompendiumDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ClassSpellcastingLevelRuleConfiguration());
         modelBuilder.ApplyConfiguration(new CharacterSubclassConfiguration());
         modelBuilder.ApplyConfiguration(new SubclassFeatureConfiguration());
+        modelBuilder.ApplyConfiguration(new FeatureConfiguration());
+        modelBuilder.ApplyConfiguration(new FeatureLinkConfiguration<ClassLevelFeature>("class_level_features", "class_level_id"));
+        modelBuilder.ApplyConfiguration(new FeatureLinkConfiguration<SpeciesFeature>("species_features", "species_id"));
+        modelBuilder.ApplyConfiguration(new FeatureLinkConfiguration<BackgroundFeature>("background_features", "background_id"));
+        modelBuilder.ApplyConfiguration(new FeatureLinkConfiguration<FeatFeature>("feat_features", "feat_id"));
+        modelBuilder.ApplyConfiguration(new EffectSchemaConfiguration());
+        modelBuilder.ApplyConfiguration(new EffectSchemaFieldConfiguration());
+        modelBuilder.ApplyConfiguration(new FeatureEffectConfiguration());
+        modelBuilder.ApplyConfiguration(new FeatureEffectFieldValueConfiguration());
+        modelBuilder.ApplyConfiguration(new FeatureEffectConditionConfiguration());
+        modelBuilder.ApplyConfiguration(new EntityPrerequisiteConfiguration());
+        modelBuilder.ApplyConfiguration(new ChoiceSetConfiguration());
+        modelBuilder.ApplyConfiguration(new ChoiceSetFilterConfiguration());
+        modelBuilder.ApplyConfiguration(new ChoiceOptionConfiguration());
     }
 }

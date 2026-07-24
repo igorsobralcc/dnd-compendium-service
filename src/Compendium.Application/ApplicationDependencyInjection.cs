@@ -1,5 +1,6 @@
 using Compendium.Domain.SharedKernel;
 using Compendium.Application.Classes;
+using Compendium.Application.Features;
 using Compendium.Application.Fundamentals;
 using Compendium.Application.Sources;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,6 +51,21 @@ public static class ApplicationDependencyInjection
         services.AddScoped<LinkSubclassFeatureUseCase>();
         services.AddScoped<ListSubclassesByClassQuery>();
         services.AddScoped<GetSubclassDetailsQuery>();
+        services.AddScoped<CreateFeatureUseCase>();
+        services.AddScoped<UpdateFeatureUseCase>();
+        services.AddScoped<ListFeaturesQuery>();
+        services.AddScoped<GetFeatureDetailsQuery>();
+        services.AddScoped<CreateEffectSchemaUseCase>();
+        services.AddScoped<AttachEffectToFeatureUseCase>();
+        services.AddScoped<GetFeatureEffectsQuery>();
+        services.AddScoped<AddPrerequisiteToEntityUseCase>();
+        services.AddScoped<RemovePrerequisiteFromEntityUseCase>();
+        services.AddScoped<GetEntityPrerequisitesQuery>();
+        services.AddScoped<CreateChoiceSetUseCase>();
+        services.AddScoped<AddChoiceOptionUseCase>();
+        services.AddScoped<AddChoiceFilterUseCase>();
+        services.AddScoped<GetChoiceSetDetailsQuery>();
+        services.AddScoped<ListChoiceSetsBySourceEntityQuery>();
 
         return services;
     }
