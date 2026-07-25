@@ -137,6 +137,7 @@ public sealed class UpdateClassUseCase
         }
 
         var update = characterClass.Update(
+            source.Value.RuleSourceId,
             source.Value.SourceVersionId,
             name.Value,
             description.Value,
@@ -230,7 +231,12 @@ public sealed class ConfigureClassProgressionUseCase
             return ApplicationResult<ClassDetailsDto>.Failure(ClassErrors.ClassNotFound(code.Value.Value));
         }
 
-        var configure = characterClass.ConfigureProgression(levelInputs.Value, spellcasting.Value, source.Value.SourceVersionId, clock.UtcNow);
+        var configure = characterClass.ConfigureProgression(
+            levelInputs.Value,
+            spellcasting.Value,
+            source.Value.RuleSourceId,
+            source.Value.SourceVersionId,
+            clock.UtcNow);
         if (configure.IsFailure)
         {
             return ApplicationResult<ClassDetailsDto>.Failure(ClassErrors.FromDomain(configure.Error));

@@ -3,6 +3,7 @@ using Compendium.API.Features;
 using Compendium.API.Equipment;
 using Compendium.API.Fundamentals;
 using Compendium.API.Sources;
+using Compendium.API.Translations;
 using Compendium.Application;
 using Compendium.Infra;
 using Compendium.Infra.Persistence;
@@ -47,6 +48,7 @@ app.MapFundamentalEndpoints();
 app.MapClassEndpoints();
 app.MapFeatureEndpoints();
 app.MapEquipmentEndpoints();
+app.MapTranslationEndpoints();
 
 app.MapHealthChecks(
     "/health",

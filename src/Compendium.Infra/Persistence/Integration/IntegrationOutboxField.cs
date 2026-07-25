@@ -10,12 +10,18 @@ public sealed class IntegrationOutboxField
         Guid outboxId,
         string fieldName,
         string fieldType,
-        DateTimeOffset createdAtUtc)
+        DateTimeOffset createdAtUtc,
+        string? textValue = null,
+        string? referenceValue = null,
+        string? enumValue = null)
     {
         Id = Guid.CreateVersion7();
         OutboxId = outboxId;
         FieldName = fieldName;
         FieldType = fieldType;
+        TextValue = textValue;
+        ReferenceValue = referenceValue;
+        EnumValue = enumValue;
         CreatedAtUtc = createdAtUtc;
     }
 

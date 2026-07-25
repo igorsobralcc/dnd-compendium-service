@@ -54,6 +54,8 @@ public sealed class CharacterClassTests
     public void Character_class_accepts_spellcasting_progression()
     {
         var characterClass = CreateClass([CreateLevelInput(1)]);
+        var newRuleSourceId = CompendiumEntityId.New();
+        var newSourceVersionId = CompendiumEntityId.New();
         var spellcasting = new ClassSpellcastingProgressionInput(
             ClassSpellcastingProgressionType.FullCaster,
             CompendiumEntityId.New(),
@@ -62,12 +64,36 @@ public sealed class CharacterClassTests
         var result = characterClass.Value.ConfigureProgression(
             [CreateLevelInput(1, [new ClassLevelSpellSlotInput(1, 2)])],
             spellcasting,
-            CompendiumEntityId.New(),
+            newRuleSourceId,
+            newSourceVersionId,
             DateTimeOffset.UtcNow);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(characterClass.Value.SpellcastingProgression);
         Assert.Single(characterClass.Value.Levels.Single().SpellSlots);
+        Assert.Equal(newRuleSourceId, characterClass.Value.RuleSourceId);
+        Assert.Equal(newSourceVersionId, characterClass.Value.SourceVersionId);
+    }
+
+    [Fact]
+    public void Character_class_update_keeps_source_and_version_consistent()
+    {
+        var characterClass = CreateClass([CreateLevelInput(1)]).Value;
+        var newRuleSourceId = CompendiumEntityId.New();
+        var newSourceVersionId = CompendiumEntityId.New();
+
+        var result = characterClass.Update(
+            newRuleSourceId,
+            newSourceVersionId,
+            ClassName.Create("Updated Fighter").Value,
+            ClassDescription.CreateOptional("Updated description").Value,
+            new ClassCoreTraitsInput(CompendiumEntityId.New(), null, 3),
+            [CompendiumEntityId.New()],
+            DateTimeOffset.UtcNow);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(newRuleSourceId, characterClass.RuleSourceId);
+        Assert.Equal(newSourceVersionId, characterClass.SourceVersionId);
     }
 
     [Fact]

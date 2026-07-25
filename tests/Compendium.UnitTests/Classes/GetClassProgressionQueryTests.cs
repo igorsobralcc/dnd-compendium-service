@@ -41,6 +41,7 @@ public sealed class GetClassProgressionQueryTests
                 CompendiumEntityId.New(),
                 [new ClassSpellcastingLevelRuleInput(1, 1)]),
             CompendiumEntityId.New(),
+            CompendiumEntityId.New(),
             DateTimeOffset.UtcNow);
 
         return characterClass;

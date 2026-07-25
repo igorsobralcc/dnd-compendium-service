@@ -88,6 +88,7 @@ public sealed class CharacterClass
     }
 
     public Result Update(
+        CompendiumEntityId ruleSourceId,
         CompendiumEntityId sourceVersionId,
         ClassName name,
         ClassDescription? description,
@@ -101,6 +102,7 @@ public sealed class CharacterClass
         var abilitiesResult = ReplacePrimaryAbilities(primaryAbilityIds);
         if (abilitiesResult.IsFailure) return abilitiesResult;
 
+        RuleSourceId = ruleSourceId;
         SourceVersionId = sourceVersionId;
         Name = name;
         Description = description;
@@ -111,12 +113,14 @@ public sealed class CharacterClass
     public Result ConfigureProgression(
         IReadOnlyCollection<ClassLevelInput> levelInputs,
         ClassSpellcastingProgressionInput? spellcastingProgressionInput,
+        CompendiumEntityId ruleSourceId,
         CompendiumEntityId sourceVersionId,
         DateTimeOffset now)
     {
         var result = ReplaceProgression(levelInputs, spellcastingProgressionInput);
         if (result.IsFailure) return result;
 
+        RuleSourceId = ruleSourceId;
         SourceVersionId = sourceVersionId;
         UpdatedAtUtc = now;
         return Result.Success();

@@ -4,6 +4,7 @@ using Compendium.Application.Features;
 using Compendium.Application.Equipment;
 using Compendium.Application.Fundamentals;
 using Compendium.Application.Sources;
+using Compendium.Application.Translations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Compendium.Application;
@@ -85,6 +86,9 @@ public static class ApplicationDependencyInjection
         services.AddScoped<CreateEquipmentPackUseCase>();
         services.AddScoped<CreateStartingEquipmentRuleUseCase>();
         services.AddScoped<GetStartingEquipmentRuleQuery>();
+        services.AddScoped<UpsertTranslationUseCase>();
+        services.AddScoped<GetTranslationsForEntityQuery>();
+        services.AddScoped<GetLocalizedEntityTranslationsQuery>();
 
         return services;
     }

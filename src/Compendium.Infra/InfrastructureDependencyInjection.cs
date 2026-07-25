@@ -3,12 +3,14 @@ using Compendium.Application.Features;
 using Compendium.Application.Equipment;
 using Compendium.Application.Fundamentals;
 using Compendium.Application.Sources;
+using Compendium.Application.Translations;
 using Compendium.Infra.Persistence;
 using Compendium.Infra.Persistence.Classes;
 using Compendium.Infra.Persistence.Features;
 using Compendium.Infra.Persistence.Equipment;
 using Compendium.Infra.Persistence.Fundamentals;
 using Compendium.Infra.Persistence.Sources;
+using Compendium.Infra.Persistence.Translations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -62,6 +64,7 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<IToolRepository, ToolRepository>();
         services.AddScoped<IEquipmentPackRepository, EquipmentPackRepository>();
         services.AddScoped<IStartingEquipmentRuleRepository, StartingEquipmentRuleRepository>();
+        services.AddScoped<ITranslationRepository, TranslationRepository>();
 
         return services;
     }

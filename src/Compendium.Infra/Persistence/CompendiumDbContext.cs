@@ -3,12 +3,14 @@ using Compendium.Domain.Features;
 using Compendium.Domain.Equipment;
 using Compendium.Domain.Fundamentals;
 using Compendium.Domain.Sources;
+using Compendium.Domain.Translations;
 using Compendium.Infra.Persistence.Classes;
 using Compendium.Infra.Persistence.Features;
 using Compendium.Infra.Persistence.Equipment;
 using Compendium.Infra.Persistence.Fundamentals;
 using Compendium.Infra.Persistence.Integration;
 using Compendium.Infra.Persistence.Sources;
+using Compendium.Infra.Persistence.Translations;
 using Microsoft.EntityFrameworkCore;
 
 namespace Compendium.Infra.Persistence;
@@ -124,6 +126,7 @@ public sealed class CompendiumDbContext : DbContext
     public DbSet<StartingEquipmentRule> StartingEquipmentRules => Set<StartingEquipmentRule>();
     public DbSet<StartingEquipmentGroup> StartingEquipmentGroups => Set<StartingEquipmentGroup>();
     public DbSet<StartingEquipmentOption> StartingEquipmentOptions => Set<StartingEquipmentOption>();
+    public DbSet<Translation> Translations => Set<Translation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -188,5 +191,6 @@ public sealed class CompendiumDbContext : DbContext
         modelBuilder.ApplyConfiguration(new StartingEquipmentRuleConfiguration());
         modelBuilder.ApplyConfiguration(new StartingEquipmentGroupConfiguration());
         modelBuilder.ApplyConfiguration(new StartingEquipmentOptionConfiguration());
+        modelBuilder.ApplyConfiguration(new TranslationConfiguration());
     }
 }

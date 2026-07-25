@@ -1,5 +1,6 @@
 using Compendium.Infra.Persistence;
 using Compendium.Domain.Classes;
+using Compendium.Domain.Translations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -45,6 +46,7 @@ public sealed class CompendiumMigrationTests
         Assert.Contains((CompendiumDbContext.Schema, "class_spellcasting_level_rules"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "subclasses"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "subclass_features"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "translations"), tables);
     }
 
     [Fact]
@@ -59,6 +61,7 @@ public sealed class CompendiumMigrationTests
         Assert.Contains("20260612020556_AddFundamentalRuleData", migrations.Keys);
         Assert.Contains("20260612022105_AddAbilityScoreMethods", migrations.Keys);
         Assert.Contains("20260612024509_AddClassesAndSubclasses", migrations.Keys);
+        Assert.Contains("20260725220037_AddTranslationsEpic", migrations.Keys);
     }
 
     [Fact]
@@ -132,6 +135,18 @@ public sealed class CompendiumMigrationTests
             .ToArray();
 
         Assert.Empty(jsonColumns);
+    }
+
+    [Fact]
+    public void Translation_model_enforces_one_value_per_entity_locale_and_field()
+    {
+        using var dbContext = CreateContext();
+
+        var indexes = dbContext.Model.FindEntityType(typeof(Translation))!.GetIndexes();
+
+        Assert.Contains(indexes, index =>
+            index.IsUnique &&
+            index.GetDatabaseName() == "ux_translations_entity_locale_field");
     }
 
     private static CompendiumDbContext CreateContext()
