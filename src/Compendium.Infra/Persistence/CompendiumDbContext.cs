@@ -12,6 +12,9 @@ using Compendium.Infra.Persistence.Integration;
 using Compendium.Infra.Persistence.Importing;
 using Compendium.Infra.Persistence.Sources;
 using Compendium.Infra.Persistence.Translations;
+using Compendium.Infra.Persistence.InternalQueries;
+using System.Diagnostics;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 
 namespace Compendium.Infra.Persistence;
@@ -130,6 +133,7 @@ public sealed class CompendiumDbContext : DbContext
     public DbSet<Translation> Translations => Set<Translation>();
     public DbSet<SourceVersionImportRecord> SourceVersionImports => Set<SourceVersionImportRecord>();
     public DbSet<SourceVersionValidationIssue> SourceVersionValidationIssues => Set<SourceVersionValidationIssue>();
+    public DbSet<CompendiumChange> CompendiumChanges => Set<CompendiumChange>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -197,5 +201,101 @@ public sealed class CompendiumDbContext : DbContext
         modelBuilder.ApplyConfiguration(new TranslationConfiguration());
         modelBuilder.ApplyConfiguration(new SourceVersionImportRecordConfiguration());
         modelBuilder.ApplyConfiguration(new SourceVersionValidationIssueConfiguration());
+        modelBuilder.ApplyConfiguration(new CompendiumChangeConfiguration());
     }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        AddChangeTrackingEntries();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        AddChangeTrackingEntries();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void AddChangeTrackingEntries()
+    {
+        var changes = ChangeTracker.Entries()
+            .Where(entry => entry.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .Select(entry => TryDescribeChange(entry.Entity, entry.State))
+            .Where(change => change is not null)
+            .Cast<TrackedChange>()
+            .GroupBy(change => new { change.EntityType, change.EntityId })
+            .Select(group => group.Last())
+            .ToArray();
+
+        if (changes.Length == 0) return;
+
+        var now = DateTimeOffset.UtcNow;
+        var correlationId = Activity.Current?.TraceId.ToString() ?? Guid.CreateVersion7().ToString();
+        foreach (var change in changes)
+        {
+            CompendiumChanges.Add(new CompendiumChange(
+                change.SourceVersionId,
+                change.EntityType,
+                change.EntityId,
+                change.ChangeType,
+                now));
+
+            var message = new IntegrationOutbox(
+                "compendium.entity-updated.v1",
+                1,
+                change.EntityType,
+                change.EntityId.ToString(),
+                correlationId,
+                now);
+            message.Fields.Add(new(message.Id, "entity_type", "text", now, textValue: change.EntityType));
+            message.Fields.Add(new(message.Id, "entity_id", "reference", now, referenceValue: change.EntityId.ToString()));
+            if (change.SourceVersionId.HasValue)
+                message.Fields.Add(new(message.Id, "source_version_id", "reference", now, referenceValue: change.SourceVersionId.Value.ToString()));
+            message.Fields.Add(new(message.Id, "change_type", "text", now, textValue: change.ChangeType));
+            IntegrationOutbox.Add(message);
+        }
+    }
+
+    private static TrackedChange? TryDescribeChange(object entity, EntityState state)
+    {
+        var entityType = entity switch
+        {
+            CharacterClass => "class",
+            CharacterSubclass => "subclass",
+            Feature => "feature",
+            ChoiceSet => "choice_set",
+            EquipmentItem => "equipment",
+            Ability => "ability",
+            AbilityScoreMethod => "ability_score_method",
+            Skill => "skill",
+            Language => "language",
+            Proficiency => "proficiency",
+            _ => null
+        };
+        if (entityType is null) return null;
+
+        var id = ReadEntityId(entity, "Id");
+        if (!id.HasValue) return null;
+        var sourceVersionId = ReadEntityId(entity, "SourceVersionId");
+        var changeType = state switch
+        {
+            EntityState.Added => "created",
+            EntityState.Deleted => "deleted",
+            _ => "updated"
+        };
+        return new TrackedChange(sourceVersionId, entityType, id.Value, changeType);
+    }
+
+    private static Guid? ReadEntityId(object entity, string propertyName)
+    {
+        var value = entity.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public)?.GetValue(entity);
+        return value switch
+        {
+            Compendium.Domain.SharedKernel.CompendiumEntityId id => id.Value,
+            Guid guid => guid,
+            _ => null
+        };
+    }
+
+    private sealed record TrackedChange(Guid? SourceVersionId, string EntityType, Guid EntityId, string ChangeType);
 }

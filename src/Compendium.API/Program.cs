@@ -5,6 +5,7 @@ using Compendium.API.Fundamentals;
 using Compendium.API.Sources;
 using Compendium.API.Translations;
 using Compendium.API.Importing;
+using Compendium.API.InternalQueries;
 using Compendium.Application;
 using Compendium.Infra;
 using Compendium.Infra.Persistence;
@@ -26,6 +27,17 @@ builder.Services
         tags: ["live", "ready"]);
 
 var app = builder.Build();
+
+app.Use(async (context, next) =>
+{
+    var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault()
+        ?? context.TraceIdentifier;
+    context.Response.Headers["X-Correlation-ID"] = correlationId;
+    using (app.Logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId }))
+    {
+        await next();
+    }
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -51,6 +63,7 @@ app.MapFeatureEndpoints();
 app.MapEquipmentEndpoints();
 app.MapTranslationEndpoints();
 app.MapImportEndpoints();
+app.MapInternalCompendiumEndpoints();
 
 app.MapHealthChecks(
     "/health",

@@ -121,3 +121,23 @@ Cada importacao bem-sucedida grava `source_version_imports` e
 issues `BLOCKER`, `WARNING` e `INFO`; a versao so recebe status `Imported` quando nao existem
 blockers. Categorias ainda nao modeladas no servico (species, backgrounds, feats e spells) aparecem
 como issues claras, em vez de serem armazenadas em JSON ou ignoradas silenciosamente.
+
+## APIs internas de consulta
+
+O EPIC 12 disponibiliza contratos de leitura `v1` para BFF, Character Builder e Rules Engine:
+
+```text
+GET /internal/compendium/character-creation-options?ruleset_id={id}&source_version_id={id}&locale=pt-BR&level=1
+GET /internal/compendium/entities/{entityType}/{entityId}/mechanics?locale=pt-BR
+GET /internal/compendium/changes?source_version_id={id}&entity_type=feature&revision=0&page=1&page_size=50
+```
+
+A consulta de opcoes retorna classes, metodos de atributo, proficiencias, idiomas e equipamentos
+da versao solicitada, aplicando traducoes por locale quando existentes. Species, backgrounds e
+spell lists permanecem como colecoes vazias enquanto esses agregados nao estiverem modelados.
+
+Os detalhes mecanicos suportam `class`, `feature`, `equipment` e `choice_set`, com effects,
+conditions, prerequisites e choice sets representados por campos relacionais tipados. O feed de
+mudancas usa revisao crescente, filtros e paginacao. Criacoes, alteracoes e exclusoes dos agregados
+acompanhados gravam `compendium_changes` e `compendium.entity-updated.v1` na Outbox na mesma
+transacao. Todas as respostas internas incluem `X-Correlation-ID`.

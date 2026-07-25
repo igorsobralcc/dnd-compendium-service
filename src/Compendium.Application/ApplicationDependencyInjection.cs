@@ -7,6 +7,7 @@ using Compendium.Application.Sources;
 using Compendium.Application.Translations;
 using Compendium.Application.Importing;
 using Compendium.Domain.Importing;
+using Compendium.Application.InternalQueries;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Compendium.Application;
@@ -95,6 +96,9 @@ public static class ApplicationDependencyInjection
         services.AddScoped<ImportSourceVersionUseCase>();
         services.AddScoped<ValidateSourceVersionUseCase>();
         services.AddScoped<ListSourceVersionValidationIssuesQuery>();
+        services.AddScoped<GetCharacterCreationOptionsQuery>();
+        services.AddScoped<GetMechanicalEntityDetailsQuery>();
+        services.AddScoped<ListCompendiumChangesSinceQuery>();
 
         return services;
     }

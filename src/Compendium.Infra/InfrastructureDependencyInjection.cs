@@ -13,6 +13,8 @@ using Compendium.Infra.Persistence.Fundamentals;
 using Compendium.Infra.Persistence.Sources;
 using Compendium.Infra.Persistence.Translations;
 using Compendium.Infra.Persistence.Importing;
+using Compendium.Application.InternalQueries;
+using Compendium.Infra.Persistence.InternalQueries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -71,6 +73,7 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<SourceVersionImportGateway>();
         services.AddScoped<ISourceVersionImportGateway>(provider => provider.GetRequiredService<SourceVersionImportGateway>());
         services.AddScoped<ISourceVersionValidationGateway>(provider => provider.GetRequiredService<SourceVersionImportGateway>());
+        services.AddScoped<IInternalCompendiumQueryGateway, InternalCompendiumQueryGateway>();
 
         return services;
     }

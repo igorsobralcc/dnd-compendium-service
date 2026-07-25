@@ -4,6 +4,7 @@ using Compendium.Domain.Translations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Compendium.Infra.Persistence.InternalQueries;
 
 namespace Compendium.IntegrationTests.Persistence;
 
@@ -47,6 +48,7 @@ public sealed class CompendiumMigrationTests
         Assert.Contains((CompendiumDbContext.Schema, "subclasses"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "subclass_features"), tables);
         Assert.Contains((CompendiumDbContext.Schema, "translations"), tables);
+        Assert.Contains((CompendiumDbContext.Schema, "compendium_changes"), tables);
     }
 
     [Fact]
@@ -62,6 +64,7 @@ public sealed class CompendiumMigrationTests
         Assert.Contains("20260612022105_AddAbilityScoreMethods", migrations.Keys);
         Assert.Contains("20260612024509_AddClassesAndSubclasses", migrations.Keys);
         Assert.Contains("20260725220037_AddTranslationsEpic", migrations.Keys);
+        Assert.Contains(migrations.Keys, key => key.EndsWith("_AddInternalQueryApisEpic", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -147,6 +150,19 @@ public sealed class CompendiumMigrationTests
         Assert.Contains(indexes, index =>
             index.IsUnique &&
             index.GetDatabaseName() == "ux_translations_entity_locale_field");
+    }
+
+    [Fact]
+    public void Change_feed_is_relational_and_indexed_for_revision_queries()
+    {
+        using var dbContext = CreateContext();
+        var entity = dbContext.Model.FindEntityType(typeof(CompendiumChange))!;
+
+        Assert.Equal("revision", entity.FindPrimaryKey()!.Properties.Single().GetColumnName());
+        Assert.Contains(entity.GetIndexes(), index =>
+            index.GetDatabaseName() == "ix_compendium_changes_source_revision");
+        Assert.Contains(entity.GetIndexes(), index =>
+            index.GetDatabaseName() == "ix_compendium_changes_type_revision");
     }
 
     private static CompendiumDbContext CreateContext()
