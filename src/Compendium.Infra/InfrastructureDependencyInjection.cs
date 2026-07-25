@@ -4,6 +4,7 @@ using Compendium.Application.Equipment;
 using Compendium.Application.Fundamentals;
 using Compendium.Application.Sources;
 using Compendium.Application.Translations;
+using Compendium.Application.Importing;
 using Compendium.Infra.Persistence;
 using Compendium.Infra.Persistence.Classes;
 using Compendium.Infra.Persistence.Features;
@@ -11,6 +12,7 @@ using Compendium.Infra.Persistence.Equipment;
 using Compendium.Infra.Persistence.Fundamentals;
 using Compendium.Infra.Persistence.Sources;
 using Compendium.Infra.Persistence.Translations;
+using Compendium.Infra.Persistence.Importing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,6 +67,10 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<IEquipmentPackRepository, EquipmentPackRepository>();
         services.AddScoped<IStartingEquipmentRuleRepository, StartingEquipmentRuleRepository>();
         services.AddScoped<ITranslationRepository, TranslationRepository>();
+        services.AddSingleton(TimeProvider.System);
+        services.AddScoped<SourceVersionImportGateway>();
+        services.AddScoped<ISourceVersionImportGateway>(provider => provider.GetRequiredService<SourceVersionImportGateway>());
+        services.AddScoped<ISourceVersionValidationGateway>(provider => provider.GetRequiredService<SourceVersionImportGateway>());
 
         return services;
     }

@@ -5,6 +5,8 @@ using Compendium.Application.Equipment;
 using Compendium.Application.Fundamentals;
 using Compendium.Application.Sources;
 using Compendium.Application.Translations;
+using Compendium.Application.Importing;
+using Compendium.Domain.Importing;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Compendium.Application;
@@ -89,6 +91,10 @@ public static class ApplicationDependencyInjection
         services.AddScoped<UpsertTranslationUseCase>();
         services.AddScoped<GetTranslationsForEntityQuery>();
         services.AddScoped<GetLocalizedEntityTranslationsQuery>();
+        services.AddSingleton<CompendiumConsistencyChecker>();
+        services.AddScoped<ImportSourceVersionUseCase>();
+        services.AddScoped<ValidateSourceVersionUseCase>();
+        services.AddScoped<ListSourceVersionValidationIssuesQuery>();
 
         return services;
     }

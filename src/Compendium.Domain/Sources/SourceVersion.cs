@@ -94,5 +94,11 @@ public sealed class SourceVersion
         UpdatedAtUtc = now;
     }
 
+    public void MarkAsImported(DateTimeOffset now)
+    {
+        ImportStatus = ImportStatus.Imported;
+        UpdatedAtUtc = now;
+    }
+
     public void ClearDomainEvents() => domainEvents.Clear();
 }

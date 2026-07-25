@@ -4,6 +4,7 @@ using Compendium.API.Equipment;
 using Compendium.API.Fundamentals;
 using Compendium.API.Sources;
 using Compendium.API.Translations;
+using Compendium.API.Importing;
 using Compendium.Application;
 using Compendium.Infra;
 using Compendium.Infra.Persistence;
@@ -49,6 +50,7 @@ app.MapClassEndpoints();
 app.MapFeatureEndpoints();
 app.MapEquipmentEndpoints();
 app.MapTranslationEndpoints();
+app.MapImportEndpoints();
 
 app.MapHealthChecks(
     "/health",

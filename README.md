@@ -100,3 +100,24 @@ Mudancas de banco devem ser feitas em passos compativeis:
 4. Remover colunas/tabelas antigas apenas quando nao houver consumidores usando o contrato anterior.
 
 Campos de regras de dominio, efeitos, escolhas, prerequisitos, magias, equipamentos e snapshots devem ser relacionais. Nao usar JSON para modelar regra mecanica.
+
+## Importacao controlada de uma versao de fonte
+
+O EPIC 11 expoe um fluxo administrativo transacional e idempotente:
+
+```text
+POST /api/compendium/source-versions/{sourceVersionId}/imports
+POST /api/compendium/source-versions/{sourceVersionId}/validation
+GET  /api/compendium/source-versions/{sourceVersionId}/validation/issues
+```
+
+O corpo da importacao e o manifesto de seed, com colecoes tipadas `abilities`, `skills`, `languages`,
+`proficiencies`, `hitDice` e `equipment`. O importador valida ruleset, fonte, versao, value objects e
+referencias antes de persistir. A mesma versao importada novamente retorna o registro anterior sem
+duplicar entidades ou eventos.
+
+Cada importacao bem-sucedida grava `source_version_imports` e
+`compendium.source-version-imported.v1` na Outbox dentro da mesma transacao. A validacao persiste
+issues `BLOCKER`, `WARNING` e `INFO`; a versao so recebe status `Imported` quando nao existem
+blockers. Categorias ainda nao modeladas no servico (species, backgrounds, feats e spells) aparecem
+como issues claras, em vez de serem armazenadas em JSON ou ignoradas silenciosamente.

@@ -9,6 +9,7 @@ using Compendium.Infra.Persistence.Features;
 using Compendium.Infra.Persistence.Equipment;
 using Compendium.Infra.Persistence.Fundamentals;
 using Compendium.Infra.Persistence.Integration;
+using Compendium.Infra.Persistence.Importing;
 using Compendium.Infra.Persistence.Sources;
 using Compendium.Infra.Persistence.Translations;
 using Microsoft.EntityFrameworkCore;
@@ -127,6 +128,8 @@ public sealed class CompendiumDbContext : DbContext
     public DbSet<StartingEquipmentGroup> StartingEquipmentGroups => Set<StartingEquipmentGroup>();
     public DbSet<StartingEquipmentOption> StartingEquipmentOptions => Set<StartingEquipmentOption>();
     public DbSet<Translation> Translations => Set<Translation>();
+    public DbSet<SourceVersionImportRecord> SourceVersionImports => Set<SourceVersionImportRecord>();
+    public DbSet<SourceVersionValidationIssue> SourceVersionValidationIssues => Set<SourceVersionValidationIssue>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -192,5 +195,7 @@ public sealed class CompendiumDbContext : DbContext
         modelBuilder.ApplyConfiguration(new StartingEquipmentGroupConfiguration());
         modelBuilder.ApplyConfiguration(new StartingEquipmentOptionConfiguration());
         modelBuilder.ApplyConfiguration(new TranslationConfiguration());
+        modelBuilder.ApplyConfiguration(new SourceVersionImportRecordConfiguration());
+        modelBuilder.ApplyConfiguration(new SourceVersionValidationIssueConfiguration());
     }
 }
