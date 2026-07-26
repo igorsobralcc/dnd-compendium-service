@@ -141,3 +141,20 @@ conditions, prerequisites e choice sets representados por campos relacionais tip
 mudancas usa revisao crescente, filtros e paginacao. Criacoes, alteracoes e exclusoes dos agregados
 acompanhados gravam `compendium_changes` e `compendium.entity-updated.v1` na Outbox na mesma
 transacao. Todas as respostas internas incluem `X-Correlation-ID`.
+
+## Eventos, Outbox e Inbox
+
+O EPIC 13 implementa entrega assincrona *at-least-once*. Os eventos
+`compendium.source-version-imported.v1`, `compendium.entity-updated.v1` e
+`compendium.translation-updated.v1` sao gravados na mesma transacao dos dados de negocio.
+Um servico em segundo plano publica somente registros ja commitados, registra o correlation id e,
+em falhas, mantem a mensagem para retry ate move-la para `DEAD_LETTER`.
+
+O transporte local padrao escreve a entrega no log. Em producao, `IEventTransport` deve ser
+substituido pelo adapter do broker adotado sem alterar o Outbox ou os contratos em
+`Compendium.Application/Contracts/Events`.
+
+Consumidores usam `IMessageConsumer`, que registra cada combinacao de `event_id` e
+`consumer_name` no Inbox. Entregas ja processadas sao ignoradas; falhas ficam disponiveis para
+reprocessamento controlado e tambem terminam em `DEAD_LETTER` apos o limite configurado em
+`IntegrationMessaging`.

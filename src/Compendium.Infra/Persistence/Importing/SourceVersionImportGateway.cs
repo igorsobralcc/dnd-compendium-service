@@ -6,6 +6,8 @@ using Compendium.Domain.Equipment;
 using Compendium.Domain.Fundamentals;
 using Compendium.Domain.Importing;
 using Compendium.Infra.Persistence.Integration;
+using Compendium.Application.Contracts.Events;
+using Compendium.Application.Integration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Compendium.Infra.Persistence.Importing;
@@ -14,11 +16,16 @@ public sealed class SourceVersionImportGateway : ISourceVersionImportGateway, IS
 {
     private readonly CompendiumDbContext db;
     private readonly TimeProvider timeProvider;
+    private readonly IEventPublisher eventPublisher;
 
-    public SourceVersionImportGateway(CompendiumDbContext db, TimeProvider timeProvider)
+    public SourceVersionImportGateway(
+        CompendiumDbContext db,
+        TimeProvider timeProvider,
+        IEventPublisher eventPublisher)
     {
         this.db = db;
         this.timeProvider = timeProvider;
+        this.eventPublisher = eventPublisher;
     }
 
     public async Task<ImportSourceVersionResult> ImportAsync(ImportSourceVersionCommand command, CancellationToken cancellationToken)
@@ -108,10 +115,18 @@ public sealed class SourceVersionImportGateway : ISourceVersionImportGateway, IS
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(command))));
         var import = new SourceVersionImportRecord(command.SourceVersionId, hash, count, now);
         db.SourceVersionImports.Add(import);
-        var outbox = new IntegrationOutbox("compendium.source-version-imported.v1", 1, "SourceVersion", command.SourceVersionId.ToString(), command.CorrelationId, now);
-        outbox.Fields.Add(new IntegrationOutboxField(outbox.Id, "sourceVersionId", "reference", now, referenceValue: command.SourceVersionId.ToString()));
-        outbox.Fields.Add(new IntegrationOutboxField(outbox.Id, "importId", "reference", now, referenceValue: import.Id.ToString()));
-        db.IntegrationOutbox.Add(outbox);
+        await eventPublisher.EnqueueAsync(
+            CompendiumEventNames.SourceVersionImportedV1,
+            1,
+            "source_version",
+            command.SourceVersionId.ToString(),
+            command.CorrelationId,
+            now,
+            [
+                new("source_version_id", "reference", ReferenceValue: command.SourceVersionId.ToString()),
+                new("import_id", "reference", ReferenceValue: import.Id.ToString())
+            ],
+            cancellationToken);
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return new(import.Id, command.SourceVersionId, false, count);

@@ -15,6 +15,8 @@ using Compendium.Infra.Persistence.Translations;
 using Compendium.Infra.Persistence.Importing;
 using Compendium.Application.InternalQueries;
 using Compendium.Infra.Persistence.InternalQueries;
+using Compendium.Application.Integration;
+using Compendium.Infra.Integration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +38,8 @@ public static class InfrastructureDependencyInjection
 
         services.Configure<CompendiumDatabaseOptions>(
             configuration.GetSection(CompendiumDatabaseOptions.SectionName));
+        services.Configure<IntegrationMessagingOptions>(
+            configuration.GetSection(IntegrationMessagingOptions.SectionName));
 
         services.AddDbContext<CompendiumDbContext>(options =>
             options.UseNpgsql(
@@ -74,6 +78,10 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<ISourceVersionImportGateway>(provider => provider.GetRequiredService<SourceVersionImportGateway>());
         services.AddScoped<ISourceVersionValidationGateway>(provider => provider.GetRequiredService<SourceVersionImportGateway>());
         services.AddScoped<IInternalCompendiumQueryGateway, InternalCompendiumQueryGateway>();
+        services.AddScoped<IEventPublisher, OutboxEventPublisher>();
+        services.AddScoped<IMessageConsumer, IdempotentMessageConsumer>();
+        services.AddScoped<IEventTransport, LoggingEventTransport>();
+        services.AddHostedService<OutboxDispatcher>();
 
         return services;
     }

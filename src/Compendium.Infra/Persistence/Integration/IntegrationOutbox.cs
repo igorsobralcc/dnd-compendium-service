@@ -59,4 +59,23 @@ public sealed class IntegrationOutbox
     public DateTimeOffset UpdatedAtUtc { get; private set; }
 
     public List<IntegrationOutboxField> Fields { get; private set; } = [];
+
+    public void MarkPublished(DateTimeOffset now)
+    {
+        Status = IntegrationMessageStatus.Published;
+        PublishedAtUtc = now;
+        LastError = null;
+        UpdatedAtUtc = now;
+    }
+
+    public void MarkFailed(string error, DateTimeOffset now, int maxRetries, TimeSpan retryDelay)
+    {
+        RetryCount++;
+        LastError = error.Length <= 2000 ? error : error[..2000];
+        Status = RetryCount >= maxRetries
+            ? IntegrationMessageStatus.DeadLetter
+            : IntegrationMessageStatus.Failed;
+        AvailableAtUtc = now.Add(retryDelay);
+        UpdatedAtUtc = now;
+    }
 }

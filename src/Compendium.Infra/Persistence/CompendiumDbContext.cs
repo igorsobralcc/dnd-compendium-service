@@ -16,6 +16,7 @@ using Compendium.Infra.Persistence.InternalQueries;
 using System.Diagnostics;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Compendium.Application.Contracts.Events;
 
 namespace Compendium.Infra.Persistence;
 
@@ -241,7 +242,7 @@ public sealed class CompendiumDbContext : DbContext
                 now));
 
             var message = new IntegrationOutbox(
-                "compendium.entity-updated.v1",
+                CompendiumEventNames.EntityUpdatedV1,
                 1,
                 change.EntityType,
                 change.EntityId.ToString(),

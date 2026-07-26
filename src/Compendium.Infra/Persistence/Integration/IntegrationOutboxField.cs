@@ -13,13 +13,17 @@ public sealed class IntegrationOutboxField
         DateTimeOffset createdAtUtc,
         string? textValue = null,
         string? referenceValue = null,
-        string? enumValue = null)
+        string? enumValue = null,
+        decimal? numberValue = null,
+        bool? booleanValue = null)
     {
         Id = Guid.CreateVersion7();
         OutboxId = outboxId;
         FieldName = fieldName;
         FieldType = fieldType;
         TextValue = textValue;
+        NumberValue = numberValue;
+        BooleanValue = booleanValue;
         ReferenceValue = referenceValue;
         EnumValue = enumValue;
         CreatedAtUtc = createdAtUtc;

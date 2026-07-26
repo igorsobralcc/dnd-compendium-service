@@ -51,4 +51,31 @@ public sealed class IntegrationInbox
     public DateTimeOffset CreatedAtUtc { get; private set; }
 
     public DateTimeOffset UpdatedAtUtc { get; private set; }
+
+    public bool CanProcess =>
+        Status is IntegrationMessageStatus.Received or IntegrationMessageStatus.Failed;
+
+    public void MarkProcessing(DateTimeOffset now)
+    {
+        Status = IntegrationMessageStatus.Processing;
+        UpdatedAtUtc = now;
+    }
+
+    public void MarkProcessed(DateTimeOffset now)
+    {
+        Status = IntegrationMessageStatus.Processed;
+        ProcessedAtUtc = now;
+        LastError = null;
+        UpdatedAtUtc = now;
+    }
+
+    public void MarkFailed(string error, DateTimeOffset now, int maxRetries)
+    {
+        RetryCount++;
+        LastError = error.Length <= 2000 ? error : error[..2000];
+        Status = RetryCount >= maxRetries
+            ? IntegrationMessageStatus.DeadLetter
+            : IntegrationMessageStatus.Failed;
+        UpdatedAtUtc = now;
+    }
 }

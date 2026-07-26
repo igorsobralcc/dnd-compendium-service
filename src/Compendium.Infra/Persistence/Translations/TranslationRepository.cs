@@ -2,6 +2,8 @@ using Compendium.Application.Translations;
 using Compendium.Domain.SharedKernel;
 using Compendium.Domain.Translations;
 using Compendium.Infra.Persistence.Integration;
+using Compendium.Application.Contracts.Events;
+using Compendium.Application.Integration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Compendium.Infra.Persistence.Translations;
@@ -9,7 +11,12 @@ namespace Compendium.Infra.Persistence.Translations;
 internal sealed class TranslationRepository : ITranslationRepository
 {
     private readonly CompendiumDbContext dbContext;
-    public TranslationRepository(CompendiumDbContext dbContext) => this.dbContext = dbContext;
+    private readonly IEventPublisher eventPublisher;
+    public TranslationRepository(CompendiumDbContext dbContext, IEventPublisher eventPublisher)
+    {
+        this.dbContext = dbContext;
+        this.eventPublisher = eventPublisher;
+    }
 
     public Task<Translation?> GetAsync(TranslatableEntityType entityType, CompendiumEntityId entityId, Locale locale, TranslationField field, CancellationToken cancellationToken) =>
         dbContext.Translations.SingleOrDefaultAsync(
@@ -28,18 +35,20 @@ internal sealed class TranslationRepository : ITranslationRepository
     public async Task SaveWithTranslationUpdatedEventAsync(Translation translation, string correlationId, CancellationToken cancellationToken)
     {
         var now = translation.UpdatedAtUtc;
-        var message = new IntegrationOutbox(
-            "compendium.translation-updated.v1",
+        await eventPublisher.EnqueueAsync(
+            CompendiumEventNames.TranslationUpdatedV1,
             1,
             "translation",
             translation.Id.ToString(),
             correlationId,
-            now);
-        message.Fields.Add(new(message.Id, "entity_type", "text", now, textValue: translation.EntityType.Value));
-        message.Fields.Add(new(message.Id, "entity_id", "reference", now, referenceValue: translation.EntityId.ToString()));
-        message.Fields.Add(new(message.Id, "locale", "text", now, textValue: translation.Locale.Value));
-        message.Fields.Add(new(message.Id, "field", "text", now, textValue: translation.Field.Value));
-        await dbContext.IntegrationOutbox.AddAsync(message, cancellationToken);
+            now,
+            [
+                new("entity_type", "text", TextValue: translation.EntityType.Value),
+                new("entity_id", "reference", ReferenceValue: translation.EntityId.ToString()),
+                new("locale", "text", TextValue: translation.Locale.Value),
+                new("field", "text", TextValue: translation.Field.Value)
+            ],
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 }
