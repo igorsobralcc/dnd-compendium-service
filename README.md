@@ -59,6 +59,12 @@ Testes:
 dotnet test dnd-compendium-service.slnx
 ```
 
+Testes com cobertura da camada de dominio:
+
+```powershell
+dotnet test dnd-compendium-service.slnx --settings coverlet.runsettings --collect:"XPlat Code Coverage"
+```
+
 Rodar API:
 
 ```powershell
@@ -158,3 +164,14 @@ Consumidores usam `IMessageConsumer`, que registra cada combinacao de `event_id`
 `consumer_name` no Inbox. Entregas ja processadas sao ignoradas; falhas ficam disponiveis para
 reprocessamento controlado e tambem terminam em `DEAD_LETTER` apos o limite configurado em
 `IntegrationMessaging`.
+
+## Qualidade e observabilidade
+
+O pipeline em `.github/workflows/quality.yml` compila a solucao e executa as suites unitarias,
+de integracao e de contrato com PostgreSQL. O limite minimo de cobertura e 50% e considera apenas `Compendium.Domain`,
+mantendo os testes de dominio independentes de HTTP, ORM e banco.
+
+Requests propagam `X-Correlation-ID`, registram `TraceId` e latencia estruturada. OpenTelemetry
+exporta em `GET /metrics` duracao de endpoints e queries, mensagens pendentes e falhas da Outbox,
+alem de falhas de importacao. A politica de compatibilidade dos DTOs internos esta em
+`docs/http-contract-versioning.md`.

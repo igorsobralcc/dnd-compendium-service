@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Compendium.Application.Observability;
 
 namespace Compendium.Infra.Integration;
 
@@ -49,6 +50,9 @@ internal sealed class OutboxDispatcher(
             .OrderBy(x => x.CreatedAtUtc)
             .Take(options.Value.BatchSize)
             .ToArrayAsync(cancellationToken);
+        CompendiumTelemetry.SetPendingOutboxMessages(await db.IntegrationOutbox.LongCountAsync(
+            x => x.Status == IntegrationMessageStatus.Pending || x.Status == IntegrationMessageStatus.Failed,
+            cancellationToken));
 
         foreach (var message in messages)
         {
@@ -63,6 +67,8 @@ internal sealed class OutboxDispatcher(
                 await transport.PublishAsync(ToEnvelope(message), cancellationToken);
                 message.MarkPublished(DateTimeOffset.UtcNow);
                 await db.SaveChangesAsync(cancellationToken);
+                CompendiumTelemetry.OutboxPublished.Add(1,
+                    new KeyValuePair<string, object?>("event.name", message.EventName));
                 logger.LogInformation("Published integration event {EventName} v{EventVersion}.", message.EventName, message.EventVersion);
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
@@ -73,6 +79,8 @@ internal sealed class OutboxDispatcher(
                     options.Value.MaxRetries,
                     options.Value.RetryDelay);
                 await db.SaveChangesAsync(cancellationToken);
+                CompendiumTelemetry.OutboxPublicationFailures.Add(1,
+                    new KeyValuePair<string, object?>("event.name", message.EventName));
                 logger.LogError(exception, "Failed to publish integration event {EventName}; status is {Status}.", message.EventName, message.Status);
             }
         }

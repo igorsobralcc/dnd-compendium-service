@@ -20,6 +20,7 @@ using Compendium.Infra.Integration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Compendium.Infra.Observability;
 
 namespace Compendium.Infra;
 
@@ -41,12 +42,14 @@ public static class InfrastructureDependencyInjection
         services.Configure<IntegrationMessagingOptions>(
             configuration.GetSection(IntegrationMessagingOptions.SectionName));
 
-        services.AddDbContext<CompendiumDbContext>(options =>
+        services.AddSingleton<DatabaseTelemetryInterceptor>();
+        services.AddDbContext<CompendiumDbContext>((provider, options) =>
             options.UseNpgsql(
                 connectionString,
                 npgsql => npgsql.MigrationsHistoryTable(
                     CompendiumDbContext.MigrationsHistoryTable,
-                    CompendiumDbContext.Schema)));
+                    CompendiumDbContext.Schema))
+                .AddInterceptors(provider.GetRequiredService<DatabaseTelemetryInterceptor>()));
 
         services.AddScoped<IRulesetRepository, RulesetRepository>();
         services.AddScoped<IRuleSourceRepository, RuleSourceRepository>();

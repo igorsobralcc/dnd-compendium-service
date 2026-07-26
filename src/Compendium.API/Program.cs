@@ -11,6 +11,11 @@ using Compendium.Infra;
 using Compendium.Infra.Persistence;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Compendium.API.Observability;
+using Compendium.Application.Observability;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +24,15 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService(CompendiumTelemetry.ServiceName))
+    .WithTracing(tracing => tracing
+        .AddSource(CompendiumTelemetry.ActivitySourceName)
+        .AddAspNetCoreInstrumentation())
+    .WithMetrics(metrics => metrics
+        .AddMeter(CompendiumTelemetry.MeterName)
+        .AddAspNetCoreInstrumentation()
+        .AddPrometheusExporter());
 builder.Services
     .AddHealthChecks()
     .AddCheck(
@@ -28,16 +42,7 @@ builder.Services
 
 var app = builder.Build();
 
-app.Use(async (context, next) =>
-{
-    var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault()
-        ?? context.TraceIdentifier;
-    context.Response.Headers["X-Correlation-ID"] = correlationId;
-    using (app.Logger.BeginScope(new Dictionary<string, object> { ["CorrelationId"] = correlationId }))
-    {
-        await next();
-    }
-});
+app.UseMiddleware<RequestObservabilityMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -64,6 +69,7 @@ app.MapEquipmentEndpoints();
 app.MapTranslationEndpoints();
 app.MapImportEndpoints();
 app.MapInternalCompendiumEndpoints();
+app.MapPrometheusScrapingEndpoint("/metrics");
 
 app.MapHealthChecks(
     "/health",

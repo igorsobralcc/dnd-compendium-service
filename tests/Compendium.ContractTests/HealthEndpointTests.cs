@@ -35,4 +35,16 @@ public sealed class HealthEndpointTests : IClassFixture<WebApplicationFactory<Pr
         Assert.Contains("\"databaseSchema\":\"compendium\"", body);
         Assert.Contains("\"apiVersion\":\"v1\"", body);
     }
+
+    [Fact]
+    public async Task Metrics_endpoint_exposes_compendium_measurements()
+    {
+        await client.GetAsync("/health");
+
+        var response = await client.GetAsync("/metrics");
+        var body = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("compendium_http_server_request_duration", body);
+    }
 }

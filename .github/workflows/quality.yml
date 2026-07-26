@@ -1,0 +1,37 @@
+name: quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: compendium
+          POSTGRES_USER: compendium
+          POSTGRES_PASSWORD: compendium
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U compendium"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet restore dnd-compendium-service.slnx
+      - run: dotnet build dnd-compendium-service.slnx --no-restore --configuration Release
+      - name: Enforce domain coverage
+        run: dotnet test tests/Compendium.UnitTests/Compendium.UnitTests.csproj --no-build --configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:Include=\"[Compendium.Domain]*\" /p:Threshold=50 /p:ThresholdType=line /p:ThresholdStat=total
+      - name: Run all suites
+        run: dotnet test dnd-compendium-service.slnx --no-build --configuration Release
+        env:
+          ConnectionStrings__CompendiumDb: Host=localhost;Port=5432;Database=compendium;Username=compendium;Password=compendium
