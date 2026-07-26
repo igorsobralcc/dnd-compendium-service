@@ -148,6 +148,24 @@ mudancas usa revisao crescente, filtros e paginacao. Criacoes, alteracoes e excl
 acompanhados gravam `compendium_changes` e `compendium.entity-updated.v1` na Outbox na mesma
 transacao. Todas as respostas internas incluem `X-Correlation-ID`.
 
+## Seguranca e autorizacao administrativa
+
+O EPIC 15 protege todo comando (`POST`, `PUT`, `PATCH` e `DELETE`) sob `/api/compendium`
+com a permissao administrativa `write`. As consultas sob `/internal/compendium` exigem a
+permissao de servico `read`; endpoints operacionais, o metadata e as consultas `GET` publicas
+permanecem anonimos.
+
+As credenciais sao recebidas pelo header `X-API-Key` e devem ser fornecidas por secret store ou
+variaveis de ambiente. A chave administrativa tambem pode consultar as APIs internas:
+
+```powershell
+$env:Compendium__Security__AdministrativeApiKey="<admin-secret>"
+$env:Compendium__Security__InternalServiceApiKey="<service-secret>"
+```
+
+Chaves ausentes ou invalidas retornam `401`; uma chave autenticada sem a permissao necessaria
+retorna `403`. Ambos usam `application/problem+json`, com `code`, `traceId` e `instance`.
+
 ## Eventos, Outbox e Inbox
 
 O EPIC 13 implementa entrega assincrona *at-least-once*. Os eventos

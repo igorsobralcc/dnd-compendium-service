@@ -13,7 +13,8 @@ public sealed class InternalCompendiumEndpointTests : IClassFixture<InternalComp
 {
     private readonly HttpClient client;
 
-    public InternalCompendiumEndpointTests(InternalCompendiumApiFactory factory) => client = factory.CreateClient();
+    public InternalCompendiumEndpointTests(InternalCompendiumApiFactory factory) =>
+        client = factory.CreateInternalServiceClient();
 
     [Fact]
     public async Task Character_creation_options_are_versioned_localized_and_fast()
@@ -59,9 +60,9 @@ public sealed class InternalCompendiumEndpointTests : IClassFixture<InternalComp
     }
 }
 
-public sealed class InternalCompendiumApiFactory : WebApplicationFactory<Program>
+public sealed class InternalCompendiumApiFactory : CompendiumApiFactory
 {
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    protected override void ConfigureTestServices(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
         {

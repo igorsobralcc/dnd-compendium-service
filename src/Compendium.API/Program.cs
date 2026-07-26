@@ -12,6 +12,7 @@ using Compendium.Infra.Persistence;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Compendium.API.Observability;
+using Compendium.API.Security;
 using Compendium.Application.Observability;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -24,6 +25,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddCompendiumSecurity(builder.Configuration);
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService(CompendiumTelemetry.ServiceName))
     .WithTracing(tracing => tracing
@@ -43,6 +45,9 @@ builder.Services
 var app = builder.Build();
 
 app.UseMiddleware<RequestObservabilityMiddleware>();
+app.UseAuthentication();
+app.UseMiddleware<CompendiumRouteAuthorizationMiddleware>();
+app.UseAuthorization();
 
 if (app.Environment.IsDevelopment())
 {

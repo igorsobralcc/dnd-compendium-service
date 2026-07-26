@@ -1,13 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Compendium.ContractTests;
 
-public sealed class TranslationEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class TranslationEndpointTests : IClassFixture<CompendiumApiFactory>
 {
     private readonly HttpClient client;
-    public TranslationEndpointTests(WebApplicationFactory<Program> factory) => client = factory.CreateClient();
+    public TranslationEndpointTests(CompendiumApiFactory factory) => client = factory.CreateAdministrativeClient();
 
     [Fact]
     public async Task Upsert_translation_returns_bad_request_for_invalid_locale()

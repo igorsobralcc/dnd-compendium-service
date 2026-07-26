@@ -1,17 +1,16 @@
 using System.Net;
 using System.Net.Http.Json;
 using Compendium.Domain.Sources;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Compendium.ContractTests;
 
-public sealed class SourceEndpointTests : IClassFixture<WebApplicationFactory<Program>>
+public sealed class SourceEndpointTests : IClassFixture<CompendiumApiFactory>
 {
     private readonly HttpClient client;
 
-    public SourceEndpointTests(WebApplicationFactory<Program> factory)
+    public SourceEndpointTests(CompendiumApiFactory factory)
     {
-        client = factory.CreateClient();
+        client = factory.CreateAdministrativeClient();
     }
 
     [Fact]
