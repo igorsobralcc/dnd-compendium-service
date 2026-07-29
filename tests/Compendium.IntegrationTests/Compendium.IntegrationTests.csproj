@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Compendium.CrossCutting\Compendium.CrossCutting.csproj" />
     <ProjectReference Include="..\..\src\Compendium.Infra\Compendium.Infra.csproj" />
   </ItemGroup>
 

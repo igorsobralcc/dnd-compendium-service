@@ -1,36 +1,68 @@
+using Compendium.Application;
 using Compendium.Application.Classes;
-using Compendium.Application.Features;
 using Compendium.Application.Equipment;
+using Compendium.Application.Features;
 using Compendium.Application.Fundamentals;
+using Compendium.Application.Importing;
+using Compendium.Application.Integration;
+using Compendium.Application.InternalQueries;
 using Compendium.Application.Sources;
 using Compendium.Application.Translations;
-using Compendium.Application.Importing;
+using Compendium.Domain.Importing;
+using Compendium.Domain.SharedKernel;
+using Compendium.Infra.Integration;
+using Compendium.Infra.Observability;
 using Compendium.Infra.Persistence;
 using Compendium.Infra.Persistence.Classes;
-using Compendium.Infra.Persistence.Features;
 using Compendium.Infra.Persistence.Equipment;
+using Compendium.Infra.Persistence.Features;
 using Compendium.Infra.Persistence.Fundamentals;
+using Compendium.Infra.Persistence.Importing;
+using Compendium.Infra.Persistence.InternalQueries;
 using Compendium.Infra.Persistence.Sources;
 using Compendium.Infra.Persistence.Translations;
-using Compendium.Infra.Persistence.Importing;
-using Compendium.Application.InternalQueries;
-using Compendium.Infra.Persistence.InternalQueries;
-using Compendium.Application.Integration;
-using Compendium.Infra.Integration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Compendium.Infra.Observability;
 
-namespace Compendium.Infra;
+namespace Compendium.CrossCutting;
 
-public static class InfrastructureDependencyInjection
+public static class CompendiumServiceCollectionExtensions
 {
-    public static IServiceCollection AddInfrastructure(
+    public static IServiceCollection AddCompendiumServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString(CompendiumDatabaseOptions.ConnectionStringName);
+        AddApplicationServices(services);
+        AddInfrastructureServices(services, configuration);
+
+        return services;
+    }
+
+    private static void AddApplicationServices(IServiceCollection services)
+    {
+        var handlerTypes = typeof(CreateRulesetUseCase).Assembly
+            .GetTypes()
+            .Where(type =>
+                type is { IsClass: true, IsAbstract: false, IsPublic: true }
+                && (type.Name.EndsWith("UseCase", StringComparison.Ordinal)
+                    || type.Name.EndsWith("Query", StringComparison.Ordinal)));
+
+        foreach (var handlerType in handlerTypes)
+        {
+            services.AddScoped(handlerType);
+        }
+
+        services.AddSingleton<IClock, SystemClock>();
+        services.AddSingleton<CompendiumConsistencyChecker>();
+    }
+
+    private static void AddInfrastructureServices(
+        IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var connectionString = configuration.GetConnectionString(
+            CompendiumDatabaseOptions.ConnectionStringName);
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
@@ -45,10 +77,10 @@ public static class InfrastructureDependencyInjection
         services.AddSingleton<DatabaseTelemetryInterceptor>();
         services.AddDbContext<CompendiumDbContext>((provider, options) =>
             options.UseNpgsql(
-                connectionString,
-                npgsql => npgsql.MigrationsHistoryTable(
-                    CompendiumDbContext.MigrationsHistoryTable,
-                    CompendiumDbContext.Schema))
+                    connectionString,
+                    npgsql => npgsql.MigrationsHistoryTable(
+                        CompendiumDbContext.MigrationsHistoryTable,
+                        CompendiumDbContext.Schema))
                 .AddInterceptors(provider.GetRequiredService<DatabaseTelemetryInterceptor>()));
 
         services.AddScoped<IRulesetRepository, RulesetRepository>();
@@ -78,14 +110,14 @@ public static class InfrastructureDependencyInjection
         services.AddScoped<ITranslationRepository, TranslationRepository>();
         services.AddSingleton(TimeProvider.System);
         services.AddScoped<SourceVersionImportGateway>();
-        services.AddScoped<ISourceVersionImportGateway>(provider => provider.GetRequiredService<SourceVersionImportGateway>());
-        services.AddScoped<ISourceVersionValidationGateway>(provider => provider.GetRequiredService<SourceVersionImportGateway>());
+        services.AddScoped<ISourceVersionImportGateway>(
+            provider => provider.GetRequiredService<SourceVersionImportGateway>());
+        services.AddScoped<ISourceVersionValidationGateway>(
+            provider => provider.GetRequiredService<SourceVersionImportGateway>());
         services.AddScoped<IInternalCompendiumQueryGateway, InternalCompendiumQueryGateway>();
         services.AddScoped<IEventPublisher, OutboxEventPublisher>();
         services.AddScoped<IMessageConsumer, IdempotentMessageConsumer>();
         services.AddScoped<IEventTransport, LoggingEventTransport>();
         services.AddHostedService<OutboxDispatcher>();
-
-        return services;
     }
 }

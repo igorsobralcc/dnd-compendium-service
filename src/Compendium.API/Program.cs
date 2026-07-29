@@ -6,9 +6,7 @@ using Compendium.API.Sources;
 using Compendium.API.Translations;
 using Compendium.API.Importing;
 using Compendium.API.InternalQueries;
-using Compendium.Application;
-using Compendium.Infra;
-using Compendium.Infra.Persistence;
+using Compendium.CrossCutting;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Compendium.API.Observability;
@@ -23,8 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddCompendiumServices(builder.Configuration);
 builder.Services.AddCompendiumSecurity(builder.Configuration);
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService(CompendiumTelemetry.ServiceName))
@@ -62,7 +59,7 @@ app.MapGet(
         "/internal/compendium/metadata",
         () => Results.Ok(new CompendiumMetadataResponse(
             "dnd-compendium-service",
-            CompendiumDbContext.Schema,
+            "compendium",
             "v1")))
     .WithName("GetCompendiumMetadata");
 

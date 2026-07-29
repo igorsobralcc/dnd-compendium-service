@@ -21,7 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Compendium.Application\Compendium.Application.csproj" />
     <ProjectReference Include="..\Compendium.CrossCutting\Compendium.CrossCutting.csproj" />
-    <ProjectReference Include="..\Compendium.Infra\Compendium.Infra.csproj" />
   </ItemGroup>
 
 </Project>
