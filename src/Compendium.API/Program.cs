@@ -7,14 +7,9 @@ using Compendium.API.Translations;
 using Compendium.API.Importing;
 using Compendium.API.InternalQueries;
 using Compendium.CrossCutting;
+using Compendium.CrossCutting.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Compendium.API.Observability;
-using Compendium.API.Security;
-using Compendium.Application.Observability;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,16 +17,6 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCompendiumServices(builder.Configuration);
-builder.Services.AddCompendiumSecurity(builder.Configuration);
-builder.Services.AddOpenTelemetry()
-    .ConfigureResource(resource => resource.AddService(CompendiumTelemetry.ServiceName))
-    .WithTracing(tracing => tracing
-        .AddSource(CompendiumTelemetry.ActivitySourceName)
-        .AddAspNetCoreInstrumentation())
-    .WithMetrics(metrics => metrics
-        .AddMeter(CompendiumTelemetry.MeterName)
-        .AddAspNetCoreInstrumentation()
-        .AddPrometheusExporter());
 builder.Services
     .AddHealthChecks()
     .AddCheck(
@@ -41,10 +26,7 @@ builder.Services
 
 var app = builder.Build();
 
-app.UseMiddleware<RequestObservabilityMiddleware>();
-app.UseAuthentication();
-app.UseMiddleware<CompendiumRouteAuthorizationMiddleware>();
-app.UseAuthorization();
+app.UseCompendiumPipeline();
 
 if (app.Environment.IsDevelopment())
 {
@@ -71,6 +53,7 @@ app.MapEquipmentEndpoints();
 app.MapTranslationEndpoints();
 app.MapImportEndpoints();
 app.MapInternalCompendiumEndpoints();
+app.MapControllers();
 app.MapPrometheusScrapingEndpoint("/metrics");
 
 app.MapHealthChecks(

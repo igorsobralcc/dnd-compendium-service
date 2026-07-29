@@ -1,5 +1,5 @@
 using System.Net;
-using Compendium.API.Security;
+using Compendium.CrossCutting.Security;
 
 namespace Compendium.ContractTests;
 

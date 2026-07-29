@@ -4,10 +4,14 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Compendium.API.Security;
+namespace Compendium.CrossCutting.Security;
 
 public static class CompendiumSecurity
 {
@@ -15,20 +19,26 @@ public static class CompendiumSecurity
     public const string AdministrativeWritePolicy = "CompendiumAdministrativeWrite";
     public const string InternalReadPolicy = "CompendiumInternalRead";
 
-    public static IServiceCollection AddCompendiumSecurity(
+    internal static IServiceCollection AddCompendiumSecurity(
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<CompendiumSecurityOptions>(configuration.GetSection("Compendium:Security"));
+        services.Configure<CompendiumSecurityOptions>(
+            configuration.GetSection("Compendium:Security"));
         services.AddAuthentication(Scheme)
-            .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(Scheme, _ => { });
+            .AddScheme<AuthenticationSchemeOptions, ApiKeyAuthenticationHandler>(
+                Scheme,
+                _ => { });
         services.AddAuthorization(options =>
         {
             options.AddPolicy(AdministrativeWritePolicy, policy =>
-                policy.RequireAuthenticatedUser().RequireClaim("compendium.permission", "write"));
+                policy.RequireAuthenticatedUser()
+                    .RequireClaim("compendium.permission", "write"));
             options.AddPolicy(InternalReadPolicy, policy =>
-                policy.RequireAuthenticatedUser().RequireClaim("compendium.permission", "read"));
+                policy.RequireAuthenticatedUser()
+                    .RequireClaim("compendium.permission", "read"));
         });
+
         return services;
     }
 }
@@ -36,7 +46,9 @@ public static class CompendiumSecurity
 public sealed class CompendiumSecurityOptions
 {
     public string HeaderName { get; init; } = "X-API-Key";
+
     public string? AdministrativeApiKey { get; init; }
+
     public string? InternalServiceApiKey { get; init; }
 }
 
@@ -51,11 +63,15 @@ internal sealed class ApiKeyAuthenticationHandler(
     {
         var security = securityOptions.CurrentValue;
         if (!Request.Headers.TryGetValue(security.HeaderName, out var suppliedValues))
+        {
             return Task.FromResult(AuthenticateResult.NoResult());
+        }
 
         var supplied = suppliedValues.FirstOrDefault();
         if (string.IsNullOrWhiteSpace(supplied))
+        {
             return Task.FromResult(AuthenticateResult.Fail("The API key is empty."));
+        }
 
         var permissions = new List<Claim>();
         if (Matches(supplied, security.AdministrativeApiKey))
@@ -75,19 +91,27 @@ internal sealed class ApiKeyAuthenticationHandler(
         var claims = new List<Claim> { new(ClaimTypes.NameIdentifier, "api-key") };
         claims.AddRange(permissions);
         var identity = new ClaimsIdentity(claims, CompendiumSecurity.Scheme);
+
         return Task.FromResult(AuthenticateResult.Success(
-            new AuthenticationTicket(new ClaimsPrincipal(identity), CompendiumSecurity.Scheme)));
+            new AuthenticationTicket(
+                new ClaimsPrincipal(identity),
+                CompendiumSecurity.Scheme)));
     }
 
     private static bool Matches(string supplied, string? configured)
     {
         if (string.IsNullOrEmpty(configured))
+        {
             return false;
+        }
 
         var suppliedBytes = Encoding.UTF8.GetBytes(supplied);
         var configuredBytes = Encoding.UTF8.GetBytes(configured);
-        return suppliedBytes.Length == configuredBytes.Length &&
-               System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(suppliedBytes, configuredBytes);
+
+        return suppliedBytes.Length == configuredBytes.Length
+            && System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
+                suppliedBytes,
+                configuredBytes);
     }
 
     protected override Task HandleChallengeAsync(AuthenticationProperties properties) =>
@@ -115,8 +139,13 @@ internal sealed class ApiKeyAuthenticationHandler(
             Detail = detail,
             Type = $"https://dnd-compendium/errors/{code}",
             Instance = Request.Path,
-            Extensions = { ["code"] = code, ["traceId"] = Context.TraceIdentifier }
+            Extensions =
+            {
+                ["code"] = code,
+                ["traceId"] = Context.TraceIdentifier
+            }
         };
+
         return JsonSerializer.SerializeAsync(
             Response.Body,
             problem,
@@ -125,9 +154,11 @@ internal sealed class ApiKeyAuthenticationHandler(
     }
 }
 
-public sealed class CompendiumRouteAuthorizationMiddleware(RequestDelegate next)
+internal sealed class CompendiumRouteAuthorizationMiddleware(RequestDelegate next)
 {
-    public async Task InvokeAsync(HttpContext context, IAuthorizationService authorization)
+    public async Task InvokeAsync(
+        HttpContext context,
+        IAuthorizationService authorization)
     {
         var policy = RequiredPolicy(context.Request);
         if (policy is null)
@@ -144,20 +175,28 @@ public sealed class CompendiumRouteAuthorizationMiddleware(RequestDelegate next)
         }
 
         if (context.User.Identity?.IsAuthenticated == true)
+        {
             await context.ForbidAsync(CompendiumSecurity.Scheme);
+        }
         else
+        {
             await context.ChallengeAsync(CompendiumSecurity.Scheme);
+        }
     }
 
     private static string? RequiredPolicy(HttpRequest request)
     {
-        if (request.Path.StartsWithSegments("/internal/compendium") &&
-            !request.Path.Equals("/internal/compendium/metadata"))
+        if (request.Path.StartsWithSegments("/internal/compendium")
+            && !request.Path.Equals("/internal/compendium/metadata"))
+        {
             return CompendiumSecurity.InternalReadPolicy;
+        }
 
-        if (request.Path.StartsWithSegments("/api/compendium") &&
-            request.Method is not ("GET" or "HEAD" or "OPTIONS"))
+        if (request.Path.StartsWithSegments("/api/compendium")
+            && request.Method is not ("GET" or "HEAD" or "OPTIONS"))
+        {
             return CompendiumSecurity.AdministrativeWritePolicy;
+        }
 
         return null;
     }

@@ -51,7 +51,7 @@ public sealed class HttpContractMatrixTests : IClassFixture<CompendiumApiFactory
             Assert.Equal(HttpStatusCode.Unauthorized, anonymousResponse.StatusCode);
             Assert.Equal("application/problem+json", anonymousResponse.Content.Headers.ContentType?.MediaType);
 
-            if (contract.AuthorizationPolicy == Compendium.API.Security.CompendiumSecurity.AdministrativeWritePolicy)
+            if (contract.AuthorizationPolicy == Compendium.CrossCutting.Security.CompendiumSecurity.AdministrativeWritePolicy)
             {
                 using var internalRequest = CreateRequest(contract);
                 using var internalResponse = await internalService.SendAsync(internalRequest);

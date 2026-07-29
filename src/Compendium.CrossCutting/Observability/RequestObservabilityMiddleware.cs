@@ -1,9 +1,11 @@
 using System.Diagnostics;
 using Compendium.Application.Observability;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
-namespace Compendium.API.Observability;
+namespace Compendium.CrossCutting.Observability;
 
-public sealed class RequestObservabilityMiddleware(
+internal sealed class RequestObservabilityMiddleware(
     RequestDelegate next,
     ILogger<RequestObservabilityMiddleware> logger)
 {
@@ -11,7 +13,9 @@ public sealed class RequestObservabilityMiddleware(
     {
         var correlationId = context.Request.Headers["X-Correlation-ID"].FirstOrDefault();
         if (string.IsNullOrWhiteSpace(correlationId))
+        {
             correlationId = context.TraceIdentifier;
+        }
 
         context.Response.Headers["X-Correlation-ID"] = correlationId;
         Activity.Current?.SetTag("correlation.id", correlationId);

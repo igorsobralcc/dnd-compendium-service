@@ -21,9 +21,15 @@ using Compendium.Infra.Persistence.Importing;
 using Compendium.Infra.Persistence.InternalQueries;
 using Compendium.Infra.Persistence.Sources;
 using Compendium.Infra.Persistence.Translations;
+using Compendium.Application.Observability;
+using Compendium.CrossCutting.Http;
+using Compendium.CrossCutting.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace Compendium.CrossCutting;
 
@@ -35,8 +41,29 @@ public static class CompendiumServiceCollectionExtensions
     {
         AddApplicationServices(services);
         AddInfrastructureServices(services, configuration);
+        AddHttpServices(services, configuration);
 
         return services;
+    }
+
+    private static void AddHttpServices(
+        IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddControllers();
+        services.AddProblemDetails();
+        services.AddExceptionHandler<CompendiumExceptionHandler>();
+        services.AddCompendiumSecurity(configuration);
+        services.AddOpenTelemetry()
+            .ConfigureResource(resource =>
+                resource.AddService(CompendiumTelemetry.ServiceName))
+            .WithTracing(tracing => tracing
+                .AddSource(CompendiumTelemetry.ActivitySourceName)
+                .AddAspNetCoreInstrumentation())
+            .WithMetrics(metrics => metrics
+                .AddMeter(CompendiumTelemetry.MeterName)
+                .AddAspNetCoreInstrumentation()
+                .AddPrometheusExporter());
     }
 
     private static void AddApplicationServices(IServiceCollection services)
