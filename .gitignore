@@ -6,3 +6,4 @@ TestResults/
 *.user
 *.suo
 /.config/dotnet-tools.json
+*.pdf

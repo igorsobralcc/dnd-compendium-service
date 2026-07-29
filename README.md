@@ -71,6 +71,75 @@ Rodar API:
 dotnet run --project src/presentation/Compendium.API/Compendium.API.csproj
 ```
 
+## Docker
+
+O Dockerfile gera uma imagem de runtime .NET 10 baseada em Ubuntu, para `linux/amd64`. A imagem
+executa como usuario nao-root, usa a porta interna `8080` e verifica o endpoint `/health`.
+Os testes devem ser executados antes, em uma etapa separada do pipeline.
+
+O build usa cache NuGet do BuildKit. A partir da raiz do repositorio:
+
+```powershell
+docker buildx build `
+  --platform linux/amd64 `
+  --tag dnd-compendium-service:local `
+  --load `
+  .
+```
+
+Para executar no WSL preservando a porta local atual (`5235`) e conectando a um PostgreSQL remoto:
+
+```powershell
+docker run --rm `
+  --name dnd-compendium-service `
+  --publish 5235:8080 `
+  --env "ConnectionStrings__CompendiumDb=Host=<host>;Port=5432;Database=compendium;Username=<usuario>;Password=<senha>" `
+  --env "Compendium__Security__AdministrativeApiKey=<admin-secret>" `
+  --env "Compendium__Security__InternalServiceApiKey=<service-secret>" `
+  dnd-compendium-service:local
+```
+
+Em Bash/WSL, o mesmo comando pode ser escrito assim:
+
+```bash
+docker run --rm \
+  --name dnd-compendium-service \
+  --publish 5235:8080 \
+  --env "ConnectionStrings__CompendiumDb=${COMPENDIUM_DB_CONNECTION}" \
+  --env "Compendium__Security__AdministrativeApiKey=${COMPENDIUM_ADMIN_API_KEY}" \
+  --env "Compendium__Security__InternalServiceApiKey=${COMPENDIUM_INTERNAL_API_KEY}" \
+  dnd-compendium-service:local
+```
+
+Verificacao:
+
+```text
+GET http://localhost:5235/health
+GET http://localhost:5235/health/ready
+GET http://localhost:5235/metrics
+```
+
+O ambiente padrao da imagem e `Production`, portanto o Swagger fica desabilitado. Para uma
+execucao explicitamente local em modo de desenvolvimento, passe
+`ASPNETCORE_ENVIRONMENT=Development`.
+
+As migrations nao sao aplicadas na inicializacao do conteiner. Elas devem ser executadas
+manualmente a partir de um checkout com o SDK e a ferramenta local restaurada:
+
+```powershell
+dotnet tool restore
+$env:ConnectionStrings__CompendiumDb="<connection-string-remota>"
+dotnet ef database update `
+  --project src/Compendium.Infra/Compendium.Infra.csproj `
+  --startup-project src/Compendium.API/Compendium.API.csproj
+```
+
+No pipeline, connection strings e chaves devem ser variaveis protegidas e fornecidas apenas na
+execucao do conteiner. Nunca use `--build-arg` para enviar segredos.
+
+As convencoes para os proximos Dockerfiles estao em
+[`docs/dockerfile-guidelines.md`](docs/dockerfile-guidelines.md).
+
 Health check:
 
 ```text
