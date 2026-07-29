@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/Compendium.API/Compendium.API.csproj" />
     <Project Path="src/Compendium.Application/Compendium.Application.csproj" />
+    <Project Path="src/Compendium.CrossCutting/Compendium.CrossCutting.csproj" />
     <Project Path="src/Compendium.Domain/Compendium.Domain.csproj" />
     <Project Path="src/Compendium.Infra/Compendium.Infra.csproj" />
   </Folder>
