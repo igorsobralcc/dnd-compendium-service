@@ -23,4 +23,8 @@
     <ProjectReference Include="..\..\src\Compendium.Infra\Compendium.Infra.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
 </Project>

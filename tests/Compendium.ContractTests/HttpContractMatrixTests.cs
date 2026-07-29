@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -15,12 +16,16 @@ public sealed class HttpContractMatrixTests : IClassFixture<CompendiumApiFactory
     public void Matrix_matches_every_application_route()
     {
         _ = factory.CreateClient();
+        var applicationParts = factory.Services.GetRequiredService<ApplicationPartManager>();
+        Assert.Contains(
+            applicationParts.ApplicationParts,
+            part => part.Name == "Compendium.API");
         var discovered = factory.Services.GetRequiredService<EndpointDataSource>().Endpoints
             .OfType<RouteEndpoint>()
             .SelectMany(endpoint => endpoint.Metadata.GetMetadata<HttpMethodMetadata>()?.HttpMethods
                 .Select(method => new RouteIdentity(
                     method,
-                    endpoint.RoutePattern.RawText!,
+                    NormalizeRoute(endpoint.RoutePattern.RawText!),
                     endpoint.Metadata.GetMetadata<IEndpointNameMetadata>()?.EndpointName))
                 ?? [])
             .Where(route => IsApplicationRoute(route.Route))
@@ -113,6 +118,11 @@ public sealed class HttpContractMatrixTests : IClassFixture<CompendiumApiFactory
         route == "/" ||
         route.StartsWith("/api/compendium", StringComparison.Ordinal) ||
         route.StartsWith("/internal/compendium", StringComparison.Ordinal);
+
+    private static string NormalizeRoute(string route) =>
+        route.StartsWith('/')
+            ? route
+            : $"/{route}";
 
     private sealed record RouteIdentity(string Method, string Route, string? Name);
 }

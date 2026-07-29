@@ -1,3 +1,5 @@
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using Compendium.Application;
 using Compendium.Application.Classes;
 using Compendium.Application.Equipment;
@@ -35,22 +37,31 @@ namespace Compendium.CrossCutting;
 
 public static class CompendiumServiceCollectionExtensions
 {
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static IServiceCollection AddCompendiumServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        var applicationAssembly = Assembly.GetCallingAssembly();
         AddApplicationServices(services);
         AddInfrastructureServices(services, configuration);
-        AddHttpServices(services, configuration);
+        AddHttpServices(services, configuration, applicationAssembly);
 
         return services;
     }
 
     private static void AddHttpServices(
         IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        Assembly applicationAssembly)
     {
-        services.AddControllers();
+        var mvc = services.AddControllers();
+        if (applicationAssembly.GetName().Name?.EndsWith(
+                ".API",
+                StringComparison.Ordinal) == true)
+        {
+            AddMvcApplicationPart(mvc, applicationAssembly);
+        }
         services.AddProblemDetails();
         services.AddExceptionHandler<CompendiumExceptionHandler>();
         services.AddCompendiumSecurity(configuration);
@@ -65,6 +76,12 @@ public static class CompendiumServiceCollectionExtensions
                 .AddAspNetCoreInstrumentation()
                 .AddPrometheusExporter());
     }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void AddMvcApplicationPart(
+        object mvcBuilder,
+        Assembly applicationAssembly) =>
+        ((IMvcBuilder)mvcBuilder).AddApplicationPart(applicationAssembly);
 
     private static void AddApplicationServices(IServiceCollection services)
     {
