@@ -1,4 +1,6 @@
 using System.Net;
+using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Routing;
@@ -94,6 +96,59 @@ public sealed class HttpContractMatrixTests : IClassFixture<CompendiumApiFactory
             client.GetAsync("/api/compendium/rulesets/UNKNOWN", cancellation.Token));
     }
 
+    [Fact]
+    public void Every_application_route_is_controller_backed()
+    {
+        _ = factory.CreateClient();
+        var endpoints = factory.Services.GetRequiredService<EndpointDataSource>()
+            .Endpoints
+            .OfType<RouteEndpoint>()
+            .Where(endpoint => IsApplicationRoute(
+                NormalizeRoute(endpoint.RoutePattern.RawText!)))
+            .ToArray();
+
+        Assert.Equal(83, endpoints.Length);
+        Assert.All(
+            endpoints,
+            endpoint => Assert.NotNull(
+                endpoint.Metadata.GetMetadata<ControllerActionDescriptor>()));
+    }
+
+    [Fact]
+    public async Task Openapi_document_matches_every_application_operation()
+    {
+        using var client = factory.CreateAdministrativeClient();
+        var document = JsonNode.Parse(
+            await client.GetStringAsync("/swagger/v1/swagger.json"));
+        var operationMethods = new HashSet<string>
+        {
+            "get", "post", "put", "delete", "patch"
+        };
+        var discovered = document!["paths"]!
+            .AsObject()
+            .SelectMany(path => path.Value!
+                .AsObject()
+                .Where(operation => operationMethods.Contains(operation.Key))
+                .Select(operation => new RouteIdentity(
+                    operation.Key.ToUpperInvariant(),
+                    NormalizeRoute(path.Key),
+                    operation.Value!["operationId"]?.GetValue<string>())))
+            .Where(operation => IsApplicationRoute(operation.Route))
+            .OrderBy(operation => operation.Method)
+            .ThenBy(operation => operation.Route)
+            .ToArray();
+        var expected = HttpContractMatrix.Routes
+            .Select(contract => new RouteIdentity(
+                contract.Method,
+                NormalizeRoute(contract.Route),
+                contract.Name))
+            .OrderBy(operation => operation.Method)
+            .ThenBy(operation => operation.Route)
+            .ToArray();
+
+        Assert.Equal(expected, discovered);
+    }
+
     private static HttpRequestMessage CreateRequest(HttpContract contract) =>
         new(
             new HttpMethod(contract.Method),
@@ -127,6 +182,7 @@ public sealed class HttpContractMatrixTests : IClassFixture<CompendiumApiFactory
         var normalized = route.StartsWith('/')
             ? route
             : $"/{route}";
+        normalized = normalized.Replace(":guid", string.Empty);
 
         return normalized.Length == 1
             ? normalized

@@ -11,7 +11,6 @@ public static class CompendiumPipelineExtensions
         app.UseExceptionHandler();
         app.UseMiddleware<RequestObservabilityMiddleware>();
         app.UseAuthentication();
-        app.UseMiddleware<CompendiumRouteAuthorizationMiddleware>();
         app.UseAuthorization();
 
         return app;
