@@ -1,4 +1,3 @@
-using Compendium.API.Classes;
 using Compendium.API.Features;
 using Compendium.API.Equipment;
 using Compendium.API.Translations;
@@ -43,7 +42,6 @@ app.MapGet(
             "v1")))
     .WithName("GetCompendiumMetadata");
 
-app.MapClassEndpoints();
 app.MapFeatureEndpoints();
 app.MapEquipmentEndpoints();
 app.MapTranslationEndpoints();
