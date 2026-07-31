@@ -1,4 +1,3 @@
-using Compendium.API.InternalQueries;
 using Compendium.CrossCutting;
 using Compendium.CrossCutting.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -38,7 +37,6 @@ app.MapGet(
             "v1")))
     .WithName("GetCompendiumMetadata");
 
-app.MapInternalCompendiumEndpoints();
 app.MapControllers();
 app.MapPrometheusScrapingEndpoint("/metrics");
 
