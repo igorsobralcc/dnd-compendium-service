@@ -26,17 +26,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.MapGet("/", () => Results.Ok(new ServiceStatusResponse("dnd-compendium-service", "running")))
-    .WithName("GetServiceStatus");
-
-app.MapGet(
-        "/internal/compendium/metadata",
-        () => Results.Ok(new CompendiumMetadataResponse(
-            "dnd-compendium-service",
-            "compendium",
-            "v1")))
-    .WithName("GetCompendiumMetadata");
-
 app.MapControllers();
 app.MapPrometheusScrapingEndpoint("/metrics");
 
@@ -59,7 +48,3 @@ app.Run();
 public partial class Program
 {
 }
-
-internal sealed record ServiceStatusResponse(string Service, string Status);
-
-internal sealed record CompendiumMetadataResponse(string Service, string DatabaseSchema, string ApiVersion);
