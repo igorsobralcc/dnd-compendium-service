@@ -1,4 +1,3 @@
-using Compendium.API.Importing;
 using Compendium.API.InternalQueries;
 using Compendium.CrossCutting;
 using Compendium.CrossCutting.Http;
@@ -39,7 +38,6 @@ app.MapGet(
             "v1")))
     .WithName("GetCompendiumMetadata");
 
-app.MapImportEndpoints();
 app.MapInternalCompendiumEndpoints();
 app.MapControllers();
 app.MapPrometheusScrapingEndpoint("/metrics");
