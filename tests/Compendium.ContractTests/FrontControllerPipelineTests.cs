@@ -52,6 +52,21 @@ public sealed class FrontControllerPipelineTests : IClassFixture<FrontController
     }
 
     [Fact]
+    public async Task Controller_base_preserves_created_and_no_content_results()
+    {
+        var created = await factory.CreateClient()
+            .PostAsync("/_contract-tests/front-controller/created", null);
+        var noContent = await factory.CreateClient()
+            .DeleteAsync("/_contract-tests/front-controller/no-content");
+
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        Assert.Equal(
+            "/_contract-tests/front-controller/resources/created",
+            created.Headers.Location?.OriginalString);
+        Assert.Equal(HttpStatusCode.NoContent, noContent.StatusCode);
+    }
+
+    [Fact]
     public async Task Unhandled_exception_returns_sanitized_problem_details_with_correlation()
     {
         const string correlationId = "contract-correlation-123";
@@ -111,4 +126,14 @@ public sealed class FrontControllerProbeController : CompendiumControllerBase
     [HttpGet("throws")]
     public IActionResult Throws() =>
         throw new InvalidOperationException("sensitive exception detail");
+
+    [HttpPost("created")]
+    public IActionResult CreatedResult() =>
+        CreatedOrProblem(
+            ApplicationResult<string>.Success("created"),
+            value => $"/_contract-tests/front-controller/resources/{value}");
+
+    [HttpDelete("no-content")]
+    public IActionResult NoContentResult() =>
+        NoContentOrProblem(ApplicationResult.Success());
 }

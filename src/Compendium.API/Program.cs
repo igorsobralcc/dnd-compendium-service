@@ -1,4 +1,3 @@
-using Compendium.API.Equipment;
 using Compendium.API.Translations;
 using Compendium.API.Importing;
 using Compendium.API.InternalQueries;
@@ -41,7 +40,6 @@ app.MapGet(
             "v1")))
     .WithName("GetCompendiumMetadata");
 
-app.MapEquipmentEndpoints();
 app.MapTranslationEndpoints();
 app.MapImportEndpoints();
 app.MapInternalCompendiumEndpoints();

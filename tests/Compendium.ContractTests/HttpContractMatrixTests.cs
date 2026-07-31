@@ -34,7 +34,10 @@ public sealed class HttpContractMatrixTests : IClassFixture<CompendiumApiFactory
             .ToArray();
 
         var expected = HttpContractMatrix.Routes
-            .Select(contract => new RouteIdentity(contract.Method, contract.Route, contract.Name))
+            .Select(contract => new RouteIdentity(
+                contract.Method,
+                NormalizeRoute(contract.Route),
+                contract.Name))
             .OrderBy(route => route.Method)
             .ThenBy(route => route.Route)
             .ToArray();
@@ -119,10 +122,16 @@ public sealed class HttpContractMatrixTests : IClassFixture<CompendiumApiFactory
         route.StartsWith("/api/compendium", StringComparison.Ordinal) ||
         route.StartsWith("/internal/compendium", StringComparison.Ordinal);
 
-    private static string NormalizeRoute(string route) =>
-        route.StartsWith('/')
+    private static string NormalizeRoute(string route)
+    {
+        var normalized = route.StartsWith('/')
             ? route
             : $"/{route}";
+
+        return normalized.Length == 1
+            ? normalized
+            : normalized.TrimEnd('/');
+    }
 
     private sealed record RouteIdentity(string Method, string Route, string? Name);
 }
