@@ -1,5 +1,6 @@
 using Compendium.CrossCutting;
 using Compendium.CrossCutting.Http;
+using Compendium.API.OpenApi;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -7,7 +8,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.UseAllOfToExtendReferenceSchemas();
+    options.OperationFilter<CompendiumOperationDocumentationFilter>();
+    options.SchemaFilter<CompendiumSchemaDocumentationFilter>();
+});
 builder.Services.AddCompendiumServices(builder.Configuration);
 builder.Services
     .AddHealthChecks()
