@@ -10,7 +10,8 @@ internal static class FeatureEfConversions
         new(id => id.Value, value => CompendiumEntityId.Create(value).Value);
 
     public static readonly ValueConverter<CompendiumEntityId?, Guid?> NullableEntityId =
-        new(id => id == null ? null : id.Value, value => value.HasValue ? CompendiumEntityId.Create(value.Value).Value : null);
+        new(id => id == null ? null : id.Value, value => value
+.HasValue ? CompendiumEntityId.Create(value.Value).Value : null);
 
     public static readonly ValueConverter<FeatureCode, string> FeatureCode =
         new(code => code.Value, value => Domain.Features.FeatureCode.Create(value).Value);
