@@ -9,6 +9,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Compendium.ContractTests/Compendium.ContractTests.csproj" />
     <Project Path="tests/Compendium.IntegrationTests/Compendium.IntegrationTests.csproj" />
+    <Project Path="tests/Compendium.ArchitectureTests/Compendium.ArchitectureTests.csproj" />
     <Project Path="tests/Compendium.UnitTests/Compendium.UnitTests.csproj" />
   </Folder>
 </Solution>
