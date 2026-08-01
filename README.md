@@ -1,83 +1,314 @@
-# dnd-compendium-service
+<div align="center">
 
-Bounded context responsavel pelo catalogo versionado de regras de D&D. O Compendium expoe dados canonicos, versionados e estruturados para BFF, Character Builder e Rules Engine. Ele nao cria personagens, nao calcula ficha final e nao decide se uma ficha esta pronta.
+# D&D Compendium Service
 
-## Arquitetura
+**A versioned, canonical rules catalog for D&D applications.**
 
-O servico segue quatro camadas:
+It gives BFFs, character builders, and rules engines a structured source of
+truth for rules, classes, features, equipment, translations, and mechanical
+queries—without coupling those consumers to persistence or import details.
 
-- `src/domain/Compendium.Domain`: agregados, entidades, value objects, invariantes, specifications e eventos de dominio. Nao referencia HTTP, ORM, banco ou mensageria.
-- `src/application/Compendium.Application`: use cases, commands, queries, portas, resultado de aplicacao e servicos de aplicacao.
-- `src/presentation/Compendium.API`: API HTTP, DTOs, health checks, OpenAPI e mapeamento de erros para HTTP.
-- `src/infrastructure/Compendium.Infra`: EF Core, PostgreSQL, migrations, repositories futuros, Outbox, Inbox e integracoes.
+[![Quality](https://github.com/igorsobralcc/dnd-compendium-service/actions/workflows/quality.yml/badge.svg?branch=main)](https://github.com/igorsobralcc/dnd-compendium-service/actions/workflows/quality.yml)
+![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)
+![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
+![Architecture](https://img.shields.io/badge/architecture-DDD%20%2B%20Hexagonal-0F766E)
 
-Suites de teste:
+[Explore the architecture](docs/architecture.md) ·
+[Read the ADR](docs/adr/0001-pragmatic-hexagonal-architecture.md) ·
+[Review contract versioning](docs/http-contract-versioning.md)
 
-- `tests/unit`: dominio e application sem infraestrutura.
-- `tests/integration`: persistencia, migrations e use cases com infraestrutura.
-- `tests/contract`: contratos HTTP internos.
+</div>
 
-## Banco de dados
+## What it solves
 
-O schema do servico e `compendium`. As migrations do Compendium nao devem alterar schemas de outros servicos nem criar foreign keys fisicas para fora do schema.
+Rule-heavy products need more than a loose collection of JSON documents. They
+need stable identities, source/version lineage, domain validation, localization,
+mechanical relationships, and observable changes. This service centralizes
+those responsibilities in a relational, version-aware bounded context.
 
-Connection string local padrao:
+The Compendium deliberately does **not** create characters, calculate final
+character sheets, or decide whether a build is complete. It publishes the
+canonical rule data those workflows consume.
+
+## API at a glance
+
+Run the service in Development and open the interactive API documentation:
+
+**[http://localhost:5235/swagger](http://localhost:5235/swagger)**
+
+Verify the service from a terminal:
+
+```bash
+curl http://localhost:5235/
+```
+
+```json
+{
+  "service": "dnd-compendium-service",
+  "status": "running"
+}
+```
+
+Representative workflows:
+
+```text
+POST /api/compendium/source-versions/{sourceVersionId}/imports
+POST /api/compendium/source-versions/{sourceVersionId}/validation
+GET  /api/compendium/source-versions/{sourceVersionId}/validation/issues
+
+GET  /internal/compendium/character-creation-options
+GET  /internal/compendium/entities/{entityType}/{entityId}/mechanics
+GET  /internal/compendium/changes
+```
+
+There is currently no public hosted demo. Swagger is available locally only in
+the `Development` environment.
+
+## Key features
+
+- **Versioned source catalog** — Organize rulesets, rule sources, and source
+  versions while preserving provenance and current-version semantics.
+- **Typed rule modeling** — Manage abilities, skills, languages, proficiencies,
+  classes, subclasses, features, choices, prerequisites, and equipment through
+  domain entities and value objects.
+- **Controlled imports** — Import typed seed manifests transactionally,
+  validate references and invariants, and safely retry an already-imported
+  source version without duplicating data.
+- **Localized content** — Store field-level translations and query localized
+  resources with fallback locale support.
+- **Mechanical query APIs** — Supply character-creation options, detailed
+  mechanics, and a paginated revision feed to trusted internal consumers.
+- **Reliable integration events** — Use transactional Outbox delivery and an
+  idempotent Inbox for at-least-once messaging workflows.
+- **Explicit access boundaries** — Protect administrative writes and internal
+  reads with API-key policies while leaving public catalog reads anonymous.
+- **Operational visibility** — Expose liveness, readiness, Prometheus metrics,
+  correlation IDs, structured latency, and OpenTelemetry instrumentation.
+- **Contract and architecture safety** — Lock the HTTP/OpenAPI surface and fail
+  CI when DDD, Hexagonal Architecture, or MVC boundaries regress.
+
+## Architecture
+
+ASP.NET Core MVC acts as the Front Controller. Controllers are inbound adapters
+that orchestrate Application use cases; Application ports are implemented by
+Infrastructure adapters; Domain remains framework-independent.
+
+```mermaid
+flowchart LR
+    Client["BFF / Builder / Rules Engine"] --> MVC["ASP.NET Core MVC"]
+    MVC --> Controllers["Resource Controllers"]
+    Controllers --> UseCases["Application Use Cases & Queries"]
+    UseCases --> Domain["Domain Model"]
+    UseCases --> Ports["Application Ports"]
+    Ports --> Adapters["Infrastructure Adapters"]
+    Adapters --> PostgreSQL[("PostgreSQL")]
+    Adapters --> Outbox["Outbox / Inbox"]
+    Composition["CrossCutting Composition"] -. wires .-> Controllers
+    Composition -. wires .-> Adapters
+```
+
+Dependency direction:
+
+```text
+Compendium.API ───────────────> Compendium.Application ──> Compendium.Domain
+       │                                  ▲
+       └──> Compendium.CrossCutting ──────┤
+                         │                │
+                         └──> Compendium.Infra ──────────> Compendium.Domain
+```
+
+Application routes use MVC controllers exclusively. Framework-owned health and
+Prometheus mappings remain technical host endpoints; they are not permission to
+introduce application Minimal APIs.
+
+### Tech stack
+
+| Area | Technologies |
+| --- | --- |
+| Runtime | .NET 10, C# 14, ASP.NET Core MVC |
+| Domain/application | DDD, Hexagonal Architecture, explicit use cases and ports |
+| Persistence | PostgreSQL 17, EF Core 10, Npgsql, relational rule modeling |
+| API contracts | OpenAPI, Swagger UI, Problem Details, API-key authorization |
+| Messaging | Transactional Outbox, idempotent Inbox, hosted dispatcher |
+| Observability | OpenTelemetry, Prometheus, structured logging, correlation IDs |
+| Quality | xUnit, contract tests, integration tests, architecture tests, Coverlet |
+| Delivery | Docker BuildKit, non-root Ubuntu runtime image, GitHub Actions |
+
+For controller ownership, dependency rules, and the end-to-end contribution
+checklist, read the full [architecture guide](docs/architecture.md).
+
+## Engineering decisions and lessons learned
+
+### Why MVC instead of application Minimal APIs?
+
+The original endpoint surface distributed routing, authorization, and HTTP
+conversion across many handlers. MVC provides one Front Controller pipeline,
+discoverable authorization metadata, consistent model binding, and one
+controller per entity or query resource. Architecture tests now prevent the old
+registration style from returning.
+
+### Why pragmatic Hexagonal Architecture?
+
+The goal is replaceable boundaries, not abstraction for its own sake. Domain
+has no framework references; Application owns use cases and ports;
+Infrastructure implements those ports; API stays an inbound adapter. Generic
+controller hierarchies and mediator layers were intentionally avoided because
+they did not solve an active boundary problem.
+
+### Hard problem: preserving contracts during the refactor
+
+Moving the complete HTTP surface from Minimal APIs to MVC risked changing route
+templates, operation IDs, authorization, status codes, and JSON behavior. A
+locked route matrix, OpenAPI comparison, resource-specific contract tests, and
+shared `ApplicationResult` → Problem Details conversion allowed the migration
+to remain externally compatible.
+
+### Hard problem: reliable imports and integration events
+
+An import can validate many related entities and must never publish an event for
+data that did not commit. Imports therefore validate before persistence and
+write Outbox records in the same transaction. Consumers use Inbox records to
+make repeated at-least-once deliveries harmless.
+
+### Key takeaways
+
+- Architecture rules are most valuable when executable in CI.
+- Relational mechanical rules are easier to query and validate than opaque JSON.
+- Resource ownership should follow the aggregate being modified.
+- Technical observability and authorization are pipeline concerns; domain
+  decisions are not.
+- Compatibility needs explicit tests whenever routing technology changes.
+
+The rationale and trade-offs are recorded in
+[ADR 0001](docs/adr/0001-pragmatic-hexagonal-architecture.md).
+
+## Local setup
+
+### Prerequisites
+
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- PostgreSQL 17 reachable on `localhost:5432`
+- Git
+- Optional: Docker with BuildKit for the container workflow
+
+The default development database settings are:
 
 ```text
 Host=localhost;Port=5432;Database=compendium;Username=compendium;Password=compendium
 ```
 
-Pode ser sobrescrita por configuracao ASP.NET Core, por exemplo:
+Create that database/user locally or override the connection string.
+
+### 1. Clone and restore
 
 ```powershell
-$env:ConnectionStrings__CompendiumDb="Host=localhost;Port=5432;Database=compendium;Username=compendium;Password=compendium"
-```
-
-## Comandos
-
-Restaurar ferramentas locais:
-
-```powershell
+git clone https://github.com/igorsobralcc/dnd-compendium-service.git
+Set-Location dnd-compendium-service
 dotnet tool restore
-```
-
-Restaurar pacotes:
-
-```powershell
 dotnet restore dnd-compendium-service.slnx
 ```
 
-Build:
+### 2. Configure local secrets
+
+PowerShell:
 
 ```powershell
-dotnet build dnd-compendium-service.slnx
+$env:ConnectionStrings__CompendiumDb="Host=localhost;Port=5432;Database=compendium;Username=compendium;Password=compendium"
+$env:Compendium__Security__AdministrativeApiKey="local-admin-key"
+$env:Compendium__Security__InternalServiceApiKey="local-service-key"
 ```
 
-Testes:
+Bash:
+
+```bash
+export ConnectionStrings__CompendiumDb='Host=localhost;Port=5432;Database=compendium;Username=compendium;Password=compendium'
+export Compendium__Security__AdministrativeApiKey='local-admin-key'
+export Compendium__Security__InternalServiceApiKey='local-service-key'
+```
+
+Never commit real keys or pass secrets as Docker build arguments.
+
+### 3. Apply migrations
 
 ```powershell
-dotnet test dnd-compendium-service.slnx
+dotnet ef database update `
+  --project src/Compendium.Infra/Compendium.Infra.csproj `
+  --startup-project src/Compendium.API/Compendium.API.csproj
 ```
 
-Testes com cobertura da camada de dominio:
+### 4. Run the API
 
 ```powershell
-dotnet test dnd-compendium-service.slnx --settings coverlet.runsettings --collect:"XPlat Code Coverage"
+dotnet run --project src/Compendium.API/Compendium.API.csproj
 ```
 
-Rodar API:
+Local endpoints:
+
+| Endpoint | Purpose | Authentication |
+| --- | --- | --- |
+| `http://localhost:5235/swagger` | Interactive API documentation | Development only |
+| `GET /health` | Liveness | Anonymous |
+| `GET /health/ready` | Readiness | Anonymous |
+| `GET /metrics` | Prometheus metrics | Anonymous |
+| `GET /api/compendium/**` | Public catalog reads | Anonymous |
+| Non-GET `/api/compendium/**` | Administrative commands | Admin API key |
+| `GET /internal/compendium/metadata` | Service metadata | Anonymous |
+| Other `GET /internal/compendium/**` | Internal query contracts | Internal or admin API key |
+
+Authenticated example:
+
+```bash
+curl \
+  --header 'X-API-Key: local-service-key' \
+  'http://localhost:5235/internal/compendium/changes?page=1&page_size=50'
+```
+
+Missing or invalid credentials return `401`; authenticated callers without the
+required permission receive `403`. Both responses use
+`application/problem+json`.
+
+## Build and test
 
 ```powershell
-dotnet run --project src/presentation/Compendium.API/Compendium.API.csproj
+dotnet build dnd-compendium-service.slnx --no-restore
+dotnet test dnd-compendium-service.slnx --no-build
 ```
+
+Run architecture rules independently:
+
+```powershell
+dotnet test `
+  tests/Compendium.ArchitectureTests/Compendium.ArchitectureTests.csproj `
+  --no-build
+```
+
+Check that the EF model still matches the latest migration:
+
+```powershell
+dotnet ef migrations has-pending-model-changes `
+  --project src/Compendium.Infra/Compendium.Infra.csproj `
+  --startup-project src/Compendium.API/Compendium.API.csproj `
+  --no-build
+```
+
+Enforce Domain line coverage locally:
+
+```powershell
+dotnet test tests/Compendium.UnitTests/Compendium.UnitTests.csproj `
+  /p:CollectCoverage=true `
+  /p:CoverletOutputFormat=cobertura `
+  '/p:Include=[Compendium.Domain]*' `
+  /p:Threshold=50 `
+  /p:ThresholdType=line `
+  /p:ThresholdStat=total
+```
+
+The solution contains unit, integration, contract, and architecture test suites.
+CI runs them against PostgreSQL 17 on every pull request and push to `main`.
 
 ## Docker
 
-O Dockerfile gera uma imagem de runtime .NET 10 baseada em Ubuntu, para `linux/amd64`. A imagem
-executa como usuario nao-root, usa a porta interna `8080` e verifica o endpoint `/health`.
-Os testes devem ser executados antes, em uma etapa separada do pipeline.
-
-O build usa cache NuGet do BuildKit. A partir da raiz do repositorio:
+Build the non-root Linux image:
 
 ```powershell
 docker buildx build `
@@ -87,178 +318,39 @@ docker buildx build `
   .
 ```
 
-Para executar no WSL preservando a porta local atual (`5235`) e conectando a um PostgreSQL remoto:
+Run it against an existing PostgreSQL instance:
 
 ```powershell
 docker run --rm `
   --name dnd-compendium-service `
   --publish 5235:8080 `
-  --env "ConnectionStrings__CompendiumDb=Host=<host>;Port=5432;Database=compendium;Username=<usuario>;Password=<senha>" `
+  --env "ConnectionStrings__CompendiumDb=<connection-string>" `
   --env "Compendium__Security__AdministrativeApiKey=<admin-secret>" `
   --env "Compendium__Security__InternalServiceApiKey=<service-secret>" `
   dnd-compendium-service:local
 ```
 
-Em Bash/WSL, o mesmo comando pode ser escrito assim:
+The production image listens on port `8080`, runs as the non-root `app` user,
+and health-checks `/health`. It does not apply migrations at startup and does
+not enable Swagger by default.
 
-```bash
-docker run --rm \
-  --name dnd-compendium-service \
-  --publish 5235:8080 \
-  --env "ConnectionStrings__CompendiumDb=${COMPENDIUM_DB_CONNECTION}" \
-  --env "Compendium__Security__AdministrativeApiKey=${COMPENDIUM_ADMIN_API_KEY}" \
-  --env "Compendium__Security__InternalServiceApiKey=${COMPENDIUM_INTERNAL_API_KEY}" \
-  dnd-compendium-service:local
-```
+See [Dockerfile guidelines](docs/dockerfile-guidelines.md) for the repository’s
+image and secret-handling conventions.
 
-Verificacao:
+## Documentation
 
-```text
-GET http://localhost:5235/health
-GET http://localhost:5235/health/ready
-GET http://localhost:5235/metrics
-```
+- [Architecture guide](docs/architecture.md) — dependency diagram, request
+  flow, controller rules, and contribution checklist.
+- [ADR 0001](docs/adr/0001-pragmatic-hexagonal-architecture.md) — rationale and
+  consequences of pragmatic Hexagonal Architecture with MVC.
+- [HTTP contract versioning](docs/http-contract-versioning.md) — compatibility
+  and internal DTO evolution policy.
+- [Dockerfile guidelines](docs/dockerfile-guidelines.md) — secure and repeatable
+  image conventions.
 
-O ambiente padrao da imagem e `Production`, portanto o Swagger fica desabilitado. Para uma
-execucao explicitamente local em modo de desenvolvimento, passe
-`ASPNETCORE_ENVIRONMENT=Development`.
+## Scope boundaries
 
-As migrations nao sao aplicadas na inicializacao do conteiner. Elas devem ser executadas
-manualmente a partir de um checkout com o SDK e a ferramenta local restaurada:
-
-```powershell
-dotnet tool restore
-$env:ConnectionStrings__CompendiumDb="<connection-string-remota>"
-dotnet ef database update `
-  --project src/Compendium.Infra/Compendium.Infra.csproj `
-  --startup-project src/Compendium.API/Compendium.API.csproj
-```
-
-No pipeline, connection strings e chaves devem ser variaveis protegidas e fornecidas apenas na
-execucao do conteiner. Nunca use `--build-arg` para enviar segredos.
-
-As convencoes para os proximos Dockerfiles estao em
-[`docs/dockerfile-guidelines.md`](docs/dockerfile-guidelines.md).
-
-Health check:
-
-```text
-GET /health
-GET /health/ready
-```
-
-Gerar migration:
-
-```powershell
-dotnet ef migrations add NomeDaMigration --project src/infrastructure/Compendium.Infra/Compendium.Infra.csproj --startup-project src/presentation/Compendium.API/Compendium.API.csproj --output-dir Persistence/Migrations
-```
-
-Aplicar migrations:
-
-```powershell
-dotnet ef database update --project src/infrastructure/Compendium.Infra/Compendium.Infra.csproj --startup-project src/presentation/Compendium.API/Compendium.API.csproj
-```
-
-Reverter a ultima migration local:
-
-```powershell
-dotnet ef database update 0 --project src/infrastructure/Compendium.Infra/Compendium.Infra.csproj --startup-project src/presentation/Compendium.API/Compendium.API.csproj
-```
-
-## Estrategia expand/contract
-
-Mudancas de banco devem ser feitas em passos compativeis:
-
-1. Expandir o schema sem quebrar consumidores existentes.
-2. Publicar aplicacao que escreve e le ambos os formatos quando necessario.
-3. Migrar dados.
-4. Remover colunas/tabelas antigas apenas quando nao houver consumidores usando o contrato anterior.
-
-Campos de regras de dominio, efeitos, escolhas, prerequisitos, magias, equipamentos e snapshots devem ser relacionais. Nao usar JSON para modelar regra mecanica.
-
-## Importacao controlada de uma versao de fonte
-
-O EPIC 11 expoe um fluxo administrativo transacional e idempotente:
-
-```text
-POST /api/compendium/source-versions/{sourceVersionId}/imports
-POST /api/compendium/source-versions/{sourceVersionId}/validation
-GET  /api/compendium/source-versions/{sourceVersionId}/validation/issues
-```
-
-O corpo da importacao e o manifesto de seed, com colecoes tipadas `abilities`, `skills`, `languages`,
-`proficiencies`, `hitDice` e `equipment`. O importador valida ruleset, fonte, versao, value objects e
-referencias antes de persistir. A mesma versao importada novamente retorna o registro anterior sem
-duplicar entidades ou eventos.
-
-Cada importacao bem-sucedida grava `source_version_imports` e
-`compendium.source-version-imported.v1` na Outbox dentro da mesma transacao. A validacao persiste
-issues `BLOCKER`, `WARNING` e `INFO`; a versao so recebe status `Imported` quando nao existem
-blockers. Categorias ainda nao modeladas no servico (species, backgrounds, feats e spells) aparecem
-como issues claras, em vez de serem armazenadas em JSON ou ignoradas silenciosamente.
-
-## APIs internas de consulta
-
-O EPIC 12 disponibiliza contratos de leitura `v1` para BFF, Character Builder e Rules Engine:
-
-```text
-GET /internal/compendium/character-creation-options?ruleset_id={id}&source_version_id={id}&locale=pt-BR&level=1
-GET /internal/compendium/entities/{entityType}/{entityId}/mechanics?locale=pt-BR
-GET /internal/compendium/changes?source_version_id={id}&entity_type=feature&revision=0&page=1&page_size=50
-```
-
-A consulta de opcoes retorna classes, metodos de atributo, proficiencias, idiomas e equipamentos
-da versao solicitada, aplicando traducoes por locale quando existentes. Species, backgrounds e
-spell lists permanecem como colecoes vazias enquanto esses agregados nao estiverem modelados.
-
-Os detalhes mecanicos suportam `class`, `feature`, `equipment` e `choice_set`, com effects,
-conditions, prerequisites e choice sets representados por campos relacionais tipados. O feed de
-mudancas usa revisao crescente, filtros e paginacao. Criacoes, alteracoes e exclusoes dos agregados
-acompanhados gravam `compendium_changes` e `compendium.entity-updated.v1` na Outbox na mesma
-transacao. Todas as respostas internas incluem `X-Correlation-ID`.
-
-## Seguranca e autorizacao administrativa
-
-O EPIC 15 protege todo comando (`POST`, `PUT`, `PATCH` e `DELETE`) sob `/api/compendium`
-com a permissao administrativa `write`. As consultas sob `/internal/compendium` exigem a
-permissao de servico `read`; endpoints operacionais, o metadata e as consultas `GET` publicas
-permanecem anonimos.
-
-As credenciais sao recebidas pelo header `X-API-Key` e devem ser fornecidas por secret store ou
-variaveis de ambiente. A chave administrativa tambem pode consultar as APIs internas:
-
-```powershell
-$env:Compendium__Security__AdministrativeApiKey="<admin-secret>"
-$env:Compendium__Security__InternalServiceApiKey="<service-secret>"
-```
-
-Chaves ausentes ou invalidas retornam `401`; uma chave autenticada sem a permissao necessaria
-retorna `403`. Ambos usam `application/problem+json`, com `code`, `traceId` e `instance`.
-
-## Eventos, Outbox e Inbox
-
-O EPIC 13 implementa entrega assincrona *at-least-once*. Os eventos
-`compendium.source-version-imported.v1`, `compendium.entity-updated.v1` e
-`compendium.translation-updated.v1` sao gravados na mesma transacao dos dados de negocio.
-Um servico em segundo plano publica somente registros ja commitados, registra o correlation id e,
-em falhas, mantem a mensagem para retry ate move-la para `DEAD_LETTER`.
-
-O transporte local padrao escreve a entrega no log. Em producao, `IEventTransport` deve ser
-substituido pelo adapter do broker adotado sem alterar o Outbox ou os contratos em
-`Compendium.Application/Contracts/Events`.
-
-Consumidores usam `IMessageConsumer`, que registra cada combinacao de `event_id` e
-`consumer_name` no Inbox. Entregas ja processadas sao ignoradas; falhas ficam disponiveis para
-reprocessamento controlado e tambem terminam em `DEAD_LETTER` apos o limite configurado em
-`IntegrationMessaging`.
-
-## Qualidade e observabilidade
-
-O pipeline em `.github/workflows/quality.yml` compila a solucao e executa as suites unitarias,
-de integracao e de contrato com PostgreSQL. O limite minimo de cobertura e 50% e considera apenas `Compendium.Domain`,
-mantendo os testes de dominio independentes de HTTP, ORM e banco.
-
-Requests propagam `X-Correlation-ID`, registram `TraceId` e latencia estruturada. OpenTelemetry
-exporta em `GET /metrics` duracao de endpoints e queries, mensagens pendentes e falhas da Outbox,
-alem de falhas de importacao. A politica de compatibilidade dos DTOs internos esta em
-`docs/http-contract-versioning.md`.
+This repository owns canonical compendium data and its publication. Character
+creation workflows, final-sheet calculations, and gameplay rulings belong to
+their own bounded contexts and should consume this service through its public
+or internal contracts.
