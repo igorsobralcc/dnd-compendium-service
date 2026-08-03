@@ -1,72 +1,71 @@
-# Padrao de Dockerfiles dos servicos
+# Service Dockerfile Standard
 
-Este documento registra as decisoes adotadas no `dnd-compendium-service` e deve ser usado como
-referencia para os proximos servicos .NET.
+This document records the decisions adopted in `dnd-compendium-service` and should be used as a
+reference for future .NET services.
 
-## Imagem e plataforma
+## Image and Platform
 
-- Usar imagens oficiais da Microsoft em `mcr.microsoft.com/dotnet`.
-- Usar a mesma versao principal do .NET declarada no projeto.
-- Usar a variante Ubuntu `noble`.
-- Construir explicitamente para `linux/amd64`.
-- Usar imagem de SDK apenas no estagio de build e imagem ASP.NET Runtime no estagio final.
-- Nao incluir testes no Dockerfile. O pipeline deve testa-los antes de construir/publicar a imagem.
+- Use official Microsoft images from `mcr.microsoft.com/dotnet`.
+- Use the same major .NET version declared in the project.
+- Use the Ubuntu `noble` variant.
+- Build explicitly for `linux/amd64`.
+- Use an SDK image only in the build stage and an ASP.NET Runtime image in the final stage.
+- Do not include tests in the Dockerfile. The pipeline must run them before building/publishing the
+  image.
 
 ## Build
 
-- Manter o contexto de build na raiz do repositorio.
-- Copiar primeiro os arquivos de projeto e executar `dotnet restore`, aproveitando o cache de
-  camadas.
-- Usar cache NuGet do BuildKit no `restore` e no `publish`.
-- Publicar em `Release`, como `framework-dependent`, para `linux-x64`.
-- Manter um `.dockerignore` com lista de inclusao para evitar o envio de fontes e artefatos
-  desnecessarios ao daemon.
+- Keep the build context at the repository root.
+- Copy the project files first and run `dotnet restore` to take advantage of layer caching.
+- Use the BuildKit NuGet cache during `restore` and `publish`.
+- Publish in `Release`, as `framework-dependent`, for `linux-x64`.
+- Maintain a `.dockerignore` with an allowlist to avoid sending unnecessary source files and
+  artifacts to the daemon.
 
-Exemplo:
+Example:
 
 ```bash
 docker buildx build \
   --platform linux/amd64 \
-  --tag nome-do-servico:local \
+  --tag service-name:local \
   --load \
   .
 ```
 
-O pipeline deve habilitar BuildKit ou usar `docker buildx`.
+The pipeline must enable BuildKit or use `docker buildx`.
 
-## Runtime e seguranca
+## Runtime and Security
 
-- Executar a aplicacao como usuario nao-root.
-- Usar a porta interna `8080`.
-- Definir `ASPNETCORE_ENVIRONMENT=Production` como padrao.
-- Nao copiar SDK, codigo-fonte, testes, configuracoes de IDE ou repositorio Git para a imagem final.
-- Nao gravar connection strings, chaves de API ou outros segredos no Dockerfile.
-- Fornecer segredos por variaveis protegidas do pipeline ou pelo mecanismo de secrets da
-  plataforma.
-- Nao usar argumentos de build para segredos, pois eles podem permanecer no historico da imagem.
-- Fixar a linha principal da imagem (`10.0`) e reconstruir regularmente para incorporar patches.
+- Run the application as a non-root user.
+- Use internal port `8080`.
+- Set `ASPNETCORE_ENVIRONMENT=Production` as the default.
+- Do not copy the SDK, source code, tests, IDE settings, or Git repository into the final image.
+- Do not write connection strings, API keys, or other secrets in the Dockerfile.
+- Provide secrets through protected pipeline variables or the platform's secrets mechanism.
+- Do not use build arguments for secrets because they may remain in the image history.
+- Pin the image's major version line (`10.0`) and rebuild regularly to incorporate patches.
 
-## Operacao
+## Operations
 
-- Declarar `HEALTHCHECK` contra o endpoint de liveness do servico.
-- Usar o endpoint de readiness da aplicacao na plataforma quando ela suportar probes separados.
-- Aplicar migrations manualmente, fora do processo de inicializacao da API.
-- Entregar a connection string por `ConnectionStrings__NomeDaConexao`.
-- Publicar a porta do host somente na execucao; ela nao deve ser fixada no Dockerfile.
+- Declare a `HEALTHCHECK` against the service's liveness endpoint.
+- Use the application's readiness endpoint on platforms that support separate probes.
+- Apply migrations manually, outside the API startup process.
+- Provide the connection string through `ConnectionStrings__ConnectionName`.
+- Publish the host port only at runtime; it must not be fixed in the Dockerfile.
 
-## Pipeline recomendado
+## Recommended Pipeline
 
-A ordem esperada e:
+The expected order is:
 
-1. Restaurar dependencias.
-2. Compilar.
-3. Executar testes e validacoes de cobertura.
-4. Construir a imagem para `linux/amd64`.
-5. Analisar a imagem com o scanner de seguranca adotado pela equipe.
-6. Publicar a imagem no registry com uma tag imutavel, como o SHA do commit.
-7. Aplicar migrations por uma etapa manual/controlada.
-8. Implantar a imagem passando configuracoes e segredos em runtime.
-9. Confirmar os endpoints `/health` e `/health/ready`.
+1. Restore dependencies.
+2. Compile.
+3. Run tests and coverage validations.
+4. Build the image for `linux/amd64`.
+5. Scan the image with the security scanner adopted by the team.
+6. Publish the image to the registry with an immutable tag, such as the commit SHA.
+7. Apply migrations through a manual/controlled step.
+8. Deploy the image, supplying configuration and secrets at runtime.
+9. Verify the `/health` and `/health/ready` endpoints.
 
-Tags de ambiente, como `staging` ou `latest`, podem ser adicionais, mas nao devem substituir a tag
-imutavel usada para rollback e auditoria.
+Environment tags, such as `staging` or `latest`, may be added, but they must not replace the
+immutable tag used for rollback and auditing.
