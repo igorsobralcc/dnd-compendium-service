@@ -37,18 +37,18 @@ Requirements: TEL-001 through TEL-018.
 
 ## Phase 2: Indexes and bounded retention
 
-- [ ] **IMP-DB-01** Add the active and published-retention partial indexes in an
+- [x] **IMP-DB-01** Add the active and published-retention partial indexes in an
   EF Core migration.
 - [ ] **IMP-DB-02** Capture plans before and after the migration and document the
   selected active index ordering.
-- [ ] **IMP-RET-01** Add validated cleanup configuration with cleanup disabled.
-- [ ] **IMP-RET-02** Implement bounded set-based deletion without materializing
+- [x] **IMP-RET-01** Add validated cleanup configuration with cleanup disabled.
+- [x] **IMP-RET-02** Implement bounded set-based deletion without materializing
   entities.
-- [ ] **IMP-RET-03** Add cleanup telemetry, logging, cancellation, and concurrent
+- [x] **IMP-RET-03** Add cleanup telemetry, logging, cancellation, and concurrent
   worker behavior.
 - [ ] **IMP-RET-04** Add PostgreSQL integration tests for AC-RET-01 through
   AC-RET-04.
-- [ ] **IMP-RET-05** Keep cleanup disabled until the operational enablement gate
+- [x] **IMP-RET-05** Keep cleanup disabled until the operational enablement gate
   is signed off for each environment.
 
 Requirements: DB-001 through DB-006 and RET-001 through RET-013.

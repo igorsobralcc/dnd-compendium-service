@@ -1,6 +1,6 @@
 # SPEC-OUTBOX-002: Active indexes and retention
 
-- Status: Accepted
+- Status: In Progress (implementation complete; production plan evidence and enablement pending)
 - Priority: High
 - Depends on: SPEC-OUTBOX-001 for the preferred release order
 

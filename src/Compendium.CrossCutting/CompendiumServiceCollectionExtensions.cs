@@ -188,5 +188,6 @@ public static class CompendiumServiceCollectionExtensions
         services.AddScoped<IEventTransport, LoggingEventTransport>();
         services.AddHostedService<OutboxDispatcher>();
         services.AddHostedService<OutboxBacklogCollector>();
+        services.AddHostedService<OutboxCleanupService>();
     }
 }

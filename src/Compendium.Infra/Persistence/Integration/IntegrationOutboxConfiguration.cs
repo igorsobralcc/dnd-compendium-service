@@ -29,5 +29,11 @@ internal sealed class IntegrationOutboxConfiguration : IEntityTypeConfiguration<
         builder.HasIndex(outbox => outbox.EventId).HasDatabaseName("ux_integration_outbox_event_id").IsUnique();
         builder.HasIndex(outbox => outbox.Status).HasDatabaseName("ix_integration_outbox_status");
         builder.HasIndex(outbox => outbox.AggregateId).HasDatabaseName("ix_integration_outbox_aggregate_id");
+        builder.HasIndex(outbox => new { outbox.AvailableAtUtc, outbox.CreatedAtUtc })
+            .HasDatabaseName("ix_integration_outbox_active_available_created")
+            .HasFilter("status IN ('PENDING', 'FAILED')");
+        builder.HasIndex(outbox => outbox.PublishedAtUtc)
+            .HasDatabaseName("ix_integration_outbox_published_at")
+            .HasFilter("status = 'PUBLISHED'");
     }
 }

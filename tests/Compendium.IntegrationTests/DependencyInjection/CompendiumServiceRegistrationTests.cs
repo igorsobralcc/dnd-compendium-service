@@ -53,6 +53,10 @@ public sealed class CompendiumServiceRegistrationTests
             services,
             descriptor => descriptor.ServiceType == typeof(IHostedService)
                 && descriptor.ImplementationType == typeof(OutboxBacklogCollector));
+        Assert.Contains(
+            services,
+            descriptor => descriptor.ServiceType == typeof(IHostedService)
+                && descriptor.ImplementationType == typeof(OutboxCleanupService));
     }
 
     [Fact]

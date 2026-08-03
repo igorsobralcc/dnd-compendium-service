@@ -65,6 +65,7 @@ public sealed class CompendiumMigrationTests
         Assert.Contains("20260612024509_AddClassesAndSubclasses", migrations.Keys);
         Assert.Contains("20260725220037_AddTranslationsEpic", migrations.Keys);
         Assert.Contains(migrations.Keys, key => key.EndsWith("_AddInternalQueryApisEpic", StringComparison.Ordinal));
+        Assert.Contains("20260803090000_AddOutboxPerformanceIndexes", migrations.Keys);
     }
 
     [Fact]
@@ -163,6 +164,20 @@ public sealed class CompendiumMigrationTests
             index.GetDatabaseName() == "ix_compendium_changes_source_revision");
         Assert.Contains(entity.GetIndexes(), index =>
             index.GetDatabaseName() == "ix_compendium_changes_type_revision");
+    }
+
+    [Fact]
+    public void Outbox_model_has_active_and_retention_indexes()
+    {
+        using var dbContext = CreateContext();
+        var entity = dbContext.Model.FindEntityType(typeof(Compendium.Infra.Persistence.Integration.IntegrationOutbox))!;
+
+        Assert.Contains(entity.GetIndexes(), index =>
+            index.GetDatabaseName() == "ix_integration_outbox_active_available_created"
+            && index.GetFilter() == "status IN ('PENDING', 'FAILED')");
+        Assert.Contains(entity.GetIndexes(), index =>
+            index.GetDatabaseName() == "ix_integration_outbox_published_at"
+            && index.GetFilter() == "status = 'PUBLISHED'");
     }
 
     private static CompendiumDbContext CreateContext()

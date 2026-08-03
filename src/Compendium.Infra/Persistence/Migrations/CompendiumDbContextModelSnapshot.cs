@@ -2363,12 +2363,20 @@ namespace Compendium.Infra.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_integration_outbox");
 
+                    b.HasIndex("AvailableAtUtc", "CreatedAtUtc")
+                        .HasDatabaseName("ix_integration_outbox_active_available_created")
+                        .HasFilter("status IN ('PENDING', 'FAILED')");
+
                     b.HasIndex("AggregateId")
                         .HasDatabaseName("ix_integration_outbox_aggregate_id");
 
                     b.HasIndex("EventId")
                         .IsUnique()
                         .HasDatabaseName("ux_integration_outbox_event_id");
+
+                    b.HasIndex("PublishedAtUtc")
+                        .HasDatabaseName("ix_integration_outbox_published_at")
+                        .HasFilter("status = 'PUBLISHED'");
 
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_integration_outbox_status");
