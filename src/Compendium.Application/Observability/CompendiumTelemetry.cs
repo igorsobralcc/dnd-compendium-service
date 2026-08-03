@@ -22,6 +22,16 @@ public static class CompendiumTelemetry
         "compendium.outbox.published", "{event}", "Published integration events.");
     public static readonly Counter<long> OutboxPublicationFailures = Meter.CreateCounter<long>(
         "compendium.outbox.publication.failures", "{failure}", "Failed event publications.");
+    public static readonly Counter<long> OutboxBacklogCollectionFailures = Meter.CreateCounter<long>(
+        "compendium.outbox.backlog.collection.failures", "{failure}", "Failed Outbox backlog collections.");
+    public static readonly Histogram<double> OutboxBacklogCollectionDuration = Meter.CreateHistogram<double>(
+        "compendium.outbox.backlog.collection.duration", "ms", "Outbox backlog collection duration.");
+    public static readonly Counter<long> OutboxCleanupDeleted = Meter.CreateCounter<long>(
+        "compendium.outbox.cleanup.deleted", "{message}", "Published Outbox messages deleted by retention.");
+    public static readonly Counter<long> OutboxCleanupFailures = Meter.CreateCounter<long>(
+        "compendium.outbox.cleanup.failures", "{failure}", "Failed Outbox cleanup runs.");
+    public static readonly Counter<long> OutboxExpiredClaimsRecovered = Meter.CreateCounter<long>(
+        "compendium.outbox.claims.recovered", "{message}", "Expired Outbox claims recovered by a dispatcher.");
 
     private static long pendingOutboxMessages;
 
@@ -29,7 +39,13 @@ public static class CompendiumTelemetry
         "compendium.outbox.pending",
         () => Interlocked.Read(ref pendingOutboxMessages),
         "{message}",
-        "Pending or retryable Outbox messages observed by the dispatcher.");
+        "Deprecated alias for unresolved Outbox messages.");
+
+    public static readonly ObservableGauge<long> OutboxUnresolved = Meter.CreateObservableGauge(
+        "compendium.outbox.unresolved",
+        () => Interlocked.Read(ref pendingOutboxMessages),
+        "{message}",
+        "Outbox messages not yet published or dead-lettered.");
 
     public static void SetPendingOutboxMessages(long value) =>
         Interlocked.Exchange(ref pendingOutboxMessages, value);

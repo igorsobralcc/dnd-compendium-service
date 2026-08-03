@@ -1,6 +1,6 @@
 # SPEC-OUTBOX-001: Decoupled backlog telemetry
 
-- Status: Accepted
+- Status: Implemented
 - Priority: High
 - Depends on: None
 

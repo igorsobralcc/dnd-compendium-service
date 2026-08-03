@@ -21,16 +21,16 @@ unknown rather than estimated as facts.
 
 ## Phase 1: Decouple telemetry
 
-- [ ] **IMP-TEL-01** Add and validate `BacklogMetricsInterval`.
-- [ ] **IMP-TEL-02** Implement the independent, non-overlapping backlog
+- [x] **IMP-TEL-01** Add and validate `BacklogMetricsInterval`.
+- [x] **IMP-TEL-02** Implement the independent, non-overlapping backlog
   collector with cancellation and failure handling.
-- [ ] **IMP-TEL-03** Remove `LongCountAsync` from `DispatchBatchAsync`.
-- [ ] **IMP-TEL-04** Add the unresolved gauge and compatibility alias backed by
+- [x] **IMP-TEL-03** Remove `LongCountAsync` from `DispatchBatchAsync`.
+- [x] **IMP-TEL-04** Add the unresolved gauge and compatibility alias backed by
   one cached value.
-- [ ] **IMP-TEL-05** Add failure telemetry and structured logs.
-- [ ] **IMP-TEL-06** Add deterministic unit, integration, and `/metrics` tests
+- [x] **IMP-TEL-05** Add failure telemetry and structured logs.
+- [x] **IMP-TEL-06** Add deterministic unit, integration, and `/metrics` tests
   covering AC-TEL-01 through AC-TEL-05.
-- [ ] **IMP-TEL-07** Update operational documentation with the `max`, not `sum`,
+- [x] **IMP-TEL-07** Update operational documentation with the `max`, not `sum`,
   multi-instance aggregation rule.
 
 Requirements: TEL-001 through TEL-018.

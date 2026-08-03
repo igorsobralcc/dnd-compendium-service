@@ -50,10 +50,6 @@ internal sealed class OutboxDispatcher(
             .OrderBy(x => x.CreatedAtUtc)
             .Take(options.Value.BatchSize)
             .ToArrayAsync(cancellationToken);
-        CompendiumTelemetry.SetPendingOutboxMessages(await db.IntegrationOutbox.LongCountAsync(
-            x => x.Status == IntegrationMessageStatus.Pending || x.Status == IntegrationMessageStatus.Failed,
-            cancellationToken));
-
         foreach (var message in messages)
         {
             using var logScope = logger.BeginScope(new Dictionary<string, object>

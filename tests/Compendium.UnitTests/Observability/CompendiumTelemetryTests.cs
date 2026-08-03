@@ -24,4 +24,30 @@ public sealed class CompendiumTelemetryTests
         Assert.Contains(measurements, item =>
             item.Name == "compendium.http.server.request.duration" && item.Value == 12.5);
     }
+
+    [Fact]
+    public void Pending_and_unresolved_gauges_observe_the_same_cached_value()
+    {
+        var measurements = new List<(string Name, long Value)>();
+        using var listener = new MeterListener();
+        listener.InstrumentPublished = (instrument, meterListener) =>
+        {
+            if (instrument.Meter.Name == CompendiumTelemetry.MeterName
+                && instrument.Name.StartsWith("compendium.outbox.", StringComparison.Ordinal))
+            {
+                meterListener.EnableMeasurementEvents(instrument);
+            }
+        };
+        listener.SetMeasurementEventCallback<long>((instrument, value, _, _) =>
+            measurements.Add((instrument.Name, value)));
+        listener.Start();
+
+        CompendiumTelemetry.SetPendingOutboxMessages(12);
+        listener.RecordObservableInstruments();
+
+        Assert.Contains(measurements, item =>
+            item.Name == "compendium.outbox.pending" && item.Value == 12);
+        Assert.Contains(measurements, item =>
+            item.Name == "compendium.outbox.unresolved" && item.Value == 12);
+    }
 }

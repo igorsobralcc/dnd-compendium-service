@@ -115,8 +115,32 @@ public static class CompendiumServiceCollectionExtensions
 
         services.Configure<CompendiumDatabaseOptions>(
             configuration.GetSection(CompendiumDatabaseOptions.SectionName));
-        services.Configure<IntegrationMessagingOptions>(
-            configuration.GetSection(IntegrationMessagingOptions.SectionName));
+        services.AddOptions<IntegrationMessagingOptions>()
+            .Bind(configuration.GetSection(IntegrationMessagingOptions.SectionName))
+            .Validate(
+                options => options.PollingInterval > TimeSpan.Zero,
+                "IntegrationMessaging:PollingInterval must be positive.")
+            .Validate(
+                options => options.BacklogMetricsInterval >= TimeSpan.FromSeconds(5)
+                    && options.BacklogMetricsInterval <= TimeSpan.FromHours(1),
+                "IntegrationMessaging:BacklogMetricsInterval must be between five seconds and one hour.")
+            .Validate(
+                options => options.BatchSize > 0 && options.MaxRetries > 0 && options.RetryDelay >= TimeSpan.Zero,
+                "IntegrationMessaging batch and retry settings are invalid.")
+            .Validate(
+                options => options.ProcessingLeaseDuration >= TimeSpan.FromSeconds(30)
+                    && options.PublishAttemptTimeout > TimeSpan.Zero
+                    && options.PublishAttemptTimeout < options.ProcessingLeaseDuration / 2,
+                "IntegrationMessaging publish timeout must be positive and less than half of a lease of at least 30 seconds.")
+            .Validate(
+                options => options.PublishedRetention >= TimeSpan.FromDays(1)
+                    && options.CleanupInterval > TimeSpan.Zero
+                    && options.CleanupBatchSize > 0
+                    && options.CleanupMaxBatchesPerRun > 0
+                    && (long)options.CleanupBatchSize * options.CleanupMaxBatchesPerRun <= 100_000
+                    && options.CleanupInterBatchDelay >= TimeSpan.Zero,
+                "IntegrationMessaging cleanup settings are outside their safe bounds.")
+            .ValidateOnStart();
 
         services.AddSingleton<DatabaseTelemetryInterceptor>();
         services.AddDbContext<CompendiumDbContext>((provider, options) =>
@@ -163,5 +187,6 @@ public static class CompendiumServiceCollectionExtensions
         services.AddScoped<IMessageConsumer, IdempotentMessageConsumer>();
         services.AddScoped<IEventTransport, LoggingEventTransport>();
         services.AddHostedService<OutboxDispatcher>();
+        services.AddHostedService<OutboxBacklogCollector>();
     }
 }

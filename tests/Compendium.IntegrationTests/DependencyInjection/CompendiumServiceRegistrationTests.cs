@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Compendium.IntegrationTests.DependencyInjection;
 
@@ -48,6 +49,40 @@ public sealed class CompendiumServiceRegistrationTests
             services,
             descriptor => descriptor.ServiceType == typeof(IHostedService)
                 && descriptor.ImplementationType == typeof(OutboxDispatcher));
+        Assert.Contains(
+            services,
+            descriptor => descriptor.ServiceType == typeof(IHostedService)
+                && descriptor.ImplementationType == typeof(OutboxBacklogCollector));
+    }
+
+    [Fact]
+    public void Integration_messaging_defaults_are_validated_at_startup()
+    {
+        var services = CreateServices();
+
+        using var provider = services.BuildServiceProvider();
+        var options = provider.GetRequiredService<IOptions<IntegrationMessagingOptions>>().Value;
+
+        Assert.Equal(TimeSpan.FromSeconds(2), options.PollingInterval);
+        Assert.Equal(TimeSpan.FromMinutes(1), options.BacklogMetricsInterval);
+    }
+
+    [Fact]
+    public void Integration_messaging_rejects_an_unsafe_backlog_interval()
+    {
+        var values = new Dictionary<string, string?>
+        {
+            ["IntegrationMessaging:BacklogMetricsInterval"] = "00:00:01"
+        };
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddCompendiumServices(configuration);
+
+        using var provider = services.BuildServiceProvider();
+
+        Assert.Throws<OptionsValidationException>(() =>
+            provider.GetRequiredService<IOptions<IntegrationMessagingOptions>>().Value);
     }
 
     private static ServiceCollection CreateServices()
