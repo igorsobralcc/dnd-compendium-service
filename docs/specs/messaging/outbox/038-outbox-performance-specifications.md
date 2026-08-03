@@ -30,7 +30,7 @@ transactional Outbox before changing production behavior.
 
 ## Evidence
 
-- `docs/specifications/README.md`
-- `docs/specifications/outbox-performance/README.md`
-- `docs/specifications/outbox-performance/001-decoupled-backlog-telemetry.md`
-- `docs/specifications/outbox-performance/implementation-plan.md`
+- `docs/specs/documentation/specification-process.md`
+- `docs/specs/messaging/outbox/README.md`
+- `docs/specs/messaging/outbox/001-decoupled-backlog-telemetry.md`
+- `docs/specs/messaging/outbox/implementation-plan.md`

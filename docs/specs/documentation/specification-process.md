@@ -1,8 +1,8 @@
-# Development specifications
+# Development specification process
 
-This directory contains normative, implementation-driving specifications for
-changes that affect architecture, persistence, contracts, operations, or other
-cross-cutting behavior.
+This document defines the lifecycle for normative, implementation-driving
+specifications for changes that affect architecture, persistence, contracts,
+operations, or other cross-cutting behavior.
 
 ## Spec-driven development rules
 
@@ -35,6 +35,6 @@ it.
 
 ## Specification catalog
 
-- [Outbox performance specification suite](outbox-performance/README.md) —
+- [Outbox performance specification suite](../messaging/outbox/README.md) —
   decoupled telemetry, active indexes, retention, safe claiming, and conditional
   throughput improvements.

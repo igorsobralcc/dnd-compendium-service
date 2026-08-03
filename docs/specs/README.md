@@ -1,9 +1,11 @@
-# Retrospective commit specifications
+# Specifications
 
-This directory documents the behavior delivered by every commit in repository
-history through `6390af1`. These are retrospective specifications: each status
-is `Done`, and each document describes the change visible in the referenced Git
-diff rather than proposing future work.
+This directory contains both normative, implementation-driving specifications
+and retrospective specifications for delivered repository changes.
+
+The retrospective catalog documents every commit in repository history through
+`6390af1`. Each retrospective status is `Done`, and each document describes the
+change visible in the referenced Git diff rather than proposing future work.
 
 ## Conventions
 
@@ -37,7 +39,13 @@ diff rather than proposing future work.
 | `sources` | Rule sources, rulesets, source versions, and API adapters |
 | `translations` | Localization behavior and API adapters |
 
-## Catalog
+## Normative specifications
+
+- [Development specification process](documentation/specification-process.md)
+- [Outbox performance specification suite](messaging/outbox/README.md)
+- [Outbox performance implementation plan](messaging/outbox/implementation-plan.md)
+
+## Retrospective commit catalog
 
 | # | Commit | Specification |
 | ---: | --- | --- |

@@ -38,4 +38,4 @@ allowing crashed workers' messages to recover through expiring leases.
 - `src/Compendium.Infra/Integration/OutboxDispatcher.cs`
 - `src/Compendium.Infra/Integration/OutboxWorkerIdentity.cs`
 - `src/Compendium.Infra/Persistence/Migrations/20260803202814_AddOutboxConcurrentClaims.cs`
-- `docs/specifications/outbox-performance/003-concurrent-safe-claiming.md`
+- `docs/specs/messaging/outbox/003-concurrent-safe-claiming.md`

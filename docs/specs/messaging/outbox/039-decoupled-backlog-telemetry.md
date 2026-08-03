@@ -33,4 +33,4 @@ collect the same operational signal on an independent cadence.
 - `src/Compendium.Infra/Integration/OutboxBacklogCollector.cs`
 - `src/Compendium.Application/Observability/CompendiumTelemetry.cs`
 - `tests/Compendium.UnitTests/Observability/CompendiumTelemetryTests.cs`
-- `docs/specifications/outbox-performance/001-decoupled-backlog-telemetry.md`
+- `docs/specs/messaging/outbox/001-decoupled-backlog-telemetry.md`

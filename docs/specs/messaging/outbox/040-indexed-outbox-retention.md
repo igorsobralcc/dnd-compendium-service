@@ -33,4 +33,4 @@ bounded, opt-in mechanism for deleting old published messages.
 - `src/Compendium.Infra/Integration/OutboxCleanupService.cs`
 - `src/Compendium.Infra/Persistence/Migrations/20260803090000_AddOutboxPerformanceIndexes.cs`
 - `tests/Compendium.IntegrationTests/Persistence/CompendiumMigrationTests.cs`
-- `docs/specifications/outbox-performance/002-active-indexes-and-retention.md`
+- `docs/specs/messaging/outbox/002-active-indexes-and-retention.md`
