@@ -46,8 +46,20 @@ internal sealed class OutboxDispatcher(
         var transport = scope.ServiceProvider.GetRequiredService<IEventTransport>();
         var now = timeProvider.GetUtcNow();
         var claimToken = Guid.CreateVersion7();
-        var claimedIds = await ClaimBatchAsync(db, claimToken, now, cancellationToken);
-        if (claimedIds.Length == 0) return;
+        var claims = await ClaimBatchAsync(db, claimToken, now, cancellationToken);
+        if (claims.Length == 0) return;
+
+        var claimedIds = claims.Select(claim => claim.Id).ToArray();
+        var recoveredCount = claims.Count(claim => claim.Recovered);
+        if (recoveredCount > 0)
+        {
+            CompendiumTelemetry.OutboxExpiredClaimsRecovered.Add(recoveredCount);
+            logger.LogInformation(
+                "Recovered {RecoveredCount} expired Outbox claims with claim {ClaimToken} for worker {ProcessingOwner}.",
+                recoveredCount,
+                claimToken,
+                workerIdentity.Value);
+        }
 
         var messages = await db.IntegrationOutbox
             .Include(x => x.Fields)
@@ -107,16 +119,16 @@ internal sealed class OutboxDispatcher(
         }
     }
 
-    private async Task<Guid[]> ClaimBatchAsync(
+    private async Task<OutboxClaim[]> ClaimBatchAsync(
         CompendiumDbContext db,
         Guid claimToken,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
         var leaseExpiry = now.Add(options.Value.ProcessingLeaseDuration);
-        var claimedIds = await db.Database.SqlQuery<Guid>($$"""
+        var claims = await db.Database.SqlQuery<OutboxClaim>($$"""
             WITH candidates AS (
-                SELECT id
+                SELECT id, status = 'PROCESSING' AS recovered
                 FROM compendium.integration_outbox
                 WHERE (status IN ('PENDING', 'FAILED') AND available_at_utc <= {{now}})
                    OR (status = 'PROCESSING' AND lease_expires_at_utc <= {{now}})
@@ -133,15 +145,15 @@ internal sealed class OutboxDispatcher(
                 updated_at_utc = {{now}}
             FROM candidates
             WHERE outbox.id = candidates.id
-            RETURNING outbox.id AS "Value"
+            RETURNING outbox.id AS "Id", candidates.recovered AS "Recovered"
             """).ToArrayAsync(cancellationToken);
 
         logger.LogDebug(
             "Claimed {ClaimedCount} Outbox messages with claim {ClaimToken} for worker {ProcessingOwner}.",
-            claimedIds.Length,
+            claims.Length,
             claimToken,
             workerIdentity.Value);
-        return claimedIds;
+        return claims;
     }
 
     private async Task<bool> RenewLeaseAsync(
@@ -244,4 +256,11 @@ internal sealed class OutboxDispatcher(
                 field.BooleanValue,
                 field.ReferenceValue,
                 field.EnumValue)).ToArray());
+
+    private sealed class OutboxClaim
+    {
+        public Guid Id { get; init; }
+
+        public bool Recovered { get; init; }
+    }
 }

@@ -4,6 +4,11 @@ This plan converts the normative specifications into independently reviewable
 delivery slices. Requirement IDs remain authoritative if this plan and a
 specification ever conflict.
 
+Repository status and outstanding operational evidence were independently
+checked in [implementation-audit.md](implementation-audit.md). The read-only
+[operational-verification.sql](operational-verification.sql) captures the
+required baseline and query-plan evidence without changing Outbox data.
+
 ## Phase 0: Baseline
 
 - [ ] **BASE-01** Record deployment instance count and Prometheus scrape
