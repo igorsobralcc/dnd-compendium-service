@@ -16,7 +16,7 @@ internal static class RepositoryLayout
         return project
             .Descendants("ProjectReference")
             .Select(reference => Path.GetFileNameWithoutExtension(
-                reference.Attribute("Include")!.Value))
+                reference.Attribute("Include")!.Value.Replace('\\', '/')))
             .ToArray();
     }
 
