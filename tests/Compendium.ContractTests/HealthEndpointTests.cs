@@ -46,5 +46,7 @@ public sealed class HealthEndpointTests : IClassFixture<WebApplicationFactory<Pr
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("compendium_http_server_request_duration", body);
+        Assert.Contains("compendium_outbox_pending", body);
+        Assert.Contains("compendium_outbox_unresolved", body);
     }
 }
