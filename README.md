@@ -194,7 +194,7 @@ The rationale and trade-offs are recorded in
 The default development database settings are:
 
 ```text
-Host=localhost;Port=5432;Database=compendium;Username=compendium;Password=compendium
+Host=localhost;Port=5432;Database=CompendiumDb;Username=compendium;Password=compendium
 ```
 
 Create that database/user locally or override the connection string.
@@ -213,7 +213,7 @@ dotnet restore dnd-compendium-service.slnx
 PowerShell:
 
 ```powershell
-$env:ConnectionStrings__CompendiumDb="Host=localhost;Port=5432;Database=compendium;Username=compendium;Password=compendium"
+$env:ConnectionStrings__CompendiumDb="Host=localhost;Port=5432;Database=CompendiumDb;Username=compendium;Password=compendium"
 $env:Compendium__Security__AdministrativeApiKey="local-admin-key"
 $env:Compendium__Security__InternalServiceApiKey="local-service-key"
 ```
@@ -221,7 +221,7 @@ $env:Compendium__Security__InternalServiceApiKey="local-service-key"
 Bash:
 
 ```bash
-export ConnectionStrings__CompendiumDb='Host=localhost;Port=5432;Database=compendium;Username=compendium;Password=compendium'
+export ConnectionStrings__CompendiumDb='Host=localhost;Port=5432;Database=CompendiumDb;Username=compendium;Password=compendium'
 export Compendium__Security__AdministrativeApiKey='local-admin-key'
 export Compendium__Security__InternalServiceApiKey='local-service-key'
 ```
