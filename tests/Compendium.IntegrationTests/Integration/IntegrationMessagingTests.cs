@@ -58,6 +58,44 @@ public sealed class IntegrationMessagingTests
     }
 
     [Fact]
+    public void Publishing_a_claimed_message_clears_its_lease_metadata()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var message = CreateOutbox(now);
+        var claimToken = Guid.CreateVersion7();
+        message.MarkClaimed(claimToken, "worker-1", now, now.AddMinutes(2));
+
+        Assert.Equal(IntegrationMessageStatus.Processing, message.Status);
+        Assert.Equal(claimToken, message.ClaimToken);
+        Assert.Equal("worker-1", message.ProcessingOwner);
+        Assert.Equal(now.AddMinutes(2), message.LeaseExpiresAtUtc);
+
+        message.MarkPublished(now.AddSeconds(1));
+
+        Assert.Equal(IntegrationMessageStatus.Published, message.Status);
+        Assert.Null(message.ClaimToken);
+        Assert.Null(message.ProcessingOwner);
+        Assert.Null(message.ProcessingStartedAtUtc);
+        Assert.Null(message.LeaseExpiresAtUtc);
+    }
+
+    [Fact]
+    public void Failing_a_claimed_message_clears_its_lease_metadata()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var message = CreateOutbox(now);
+        message.MarkClaimed(Guid.CreateVersion7(), "worker-1", now, now.AddMinutes(2));
+
+        message.MarkFailed("broker unavailable", now, 3, TimeSpan.FromSeconds(10));
+
+        Assert.Equal(IntegrationMessageStatus.Failed, message.Status);
+        Assert.Null(message.ClaimToken);
+        Assert.Null(message.ProcessingOwner);
+        Assert.Null(message.ProcessingStartedAtUtc);
+        Assert.Null(message.LeaseExpiresAtUtc);
+    }
+
+    [Fact]
     public void Inbox_tracks_failure_retry_and_success()
     {
         var now = DateTimeOffset.UtcNow;

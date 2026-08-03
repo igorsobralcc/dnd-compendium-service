@@ -1,6 +1,6 @@
 # SPEC-OUTBOX-003: Concurrent-safe claiming and leases
 
-- Status: Accepted
+- Status: In Progress (implementation complete; live PostgreSQL concurrency verification pending)
 - Priority: High before horizontal scaling
 - Depends on: SPEC-OUTBOX-002 active-message indexing
 

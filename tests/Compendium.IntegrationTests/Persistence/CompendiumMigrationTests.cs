@@ -66,6 +66,7 @@ public sealed class CompendiumMigrationTests
         Assert.Contains("20260725220037_AddTranslationsEpic", migrations.Keys);
         Assert.Contains(migrations.Keys, key => key.EndsWith("_AddInternalQueryApisEpic", StringComparison.Ordinal));
         Assert.Contains("20260803090000_AddOutboxPerformanceIndexes", migrations.Keys);
+        Assert.Contains(migrations.Keys, key => key.EndsWith("_AddOutboxConcurrentClaims", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -178,6 +179,10 @@ public sealed class CompendiumMigrationTests
         Assert.Contains(entity.GetIndexes(), index =>
             index.GetDatabaseName() == "ix_integration_outbox_published_at"
             && index.GetFilter() == "status = 'PUBLISHED'");
+        Assert.Contains(entity.GetIndexes(), index =>
+            index.GetDatabaseName() == "ix_integration_outbox_processing_lease"
+            && index.GetFilter() == "status = 'PROCESSING'");
+        Assert.True(entity.FindProperty("ClaimToken")!.IsConcurrencyToken);
     }
 
     private static CompendiumDbContext CreateContext()

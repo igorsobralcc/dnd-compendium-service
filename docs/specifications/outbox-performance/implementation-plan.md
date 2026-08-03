@@ -55,15 +55,15 @@ Requirements: DB-001 through DB-006 and RET-001 through RET-013.
 
 ## Phase 3: Concurrent-safe claiming
 
-- [ ] **IMP-CLM-01** Add the processing status, claim columns, expired-lease
+- [x] **IMP-CLM-01** Add the processing status, claim columns, expired-lease
   index, EF mapping, and migration.
-- [ ] **IMP-CLM-02** Add and validate lease and worker-identity configuration.
-- [ ] **IMP-CLM-03** Implement atomic ordered claiming with skip-locked behavior.
-- [ ] **IMP-CLM-04** Load and publish only records owned by the returned claim.
-- [ ] **IMP-CLM-05** Implement token-fenced success and failure completion.
-- [ ] **IMP-CLM-06** Implement expired-lease recovery, guarded lease renewal,
+- [x] **IMP-CLM-02** Add and validate lease and worker-identity configuration.
+- [x] **IMP-CLM-03** Implement atomic ordered claiming with skip-locked behavior.
+- [x] **IMP-CLM-04** Load and publish only records owned by the returned claim.
+- [x] **IMP-CLM-05** Implement token-fenced success and failure completion.
+- [x] **IMP-CLM-06** Implement expired-lease recovery, guarded lease renewal,
   bounded publish attempts, and stale-owner logging.
-- [ ] **IMP-CLM-07** Include processing rows in unresolved telemetry.
+- [x] **IMP-CLM-07** Include processing rows in unresolved telemetry.
 - [ ] **IMP-CLM-08** Add true concurrent PostgreSQL tests for AC-CLM-01 through
   AC-CLM-08.
 

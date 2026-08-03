@@ -177,6 +177,7 @@ public static class CompendiumServiceCollectionExtensions
         services.AddScoped<IStartingEquipmentRuleRepository, StartingEquipmentRuleRepository>();
         services.AddScoped<ITranslationRepository, TranslationRepository>();
         services.AddSingleton(TimeProvider.System);
+        services.AddSingleton<OutboxWorkerIdentity>();
         services.AddScoped<SourceVersionImportGateway>();
         services.AddScoped<ISourceVersionImportGateway>(
             provider => provider.GetRequiredService<SourceVersionImportGateway>());

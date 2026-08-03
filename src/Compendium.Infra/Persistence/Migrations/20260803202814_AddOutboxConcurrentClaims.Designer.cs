@@ -3,6 +3,7 @@ using System;
 using Compendium.Infra.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Compendium.Infra.Persistence.Migrations
 {
     [DbContext(typeof(CompendiumDbContext))]
-    partial class CompendiumDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260803202814_AddOutboxConcurrentClaims")]
+    partial class AddOutboxConcurrentClaims
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

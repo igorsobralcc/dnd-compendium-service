@@ -43,7 +43,8 @@ internal sealed class OutboxBacklogCollector(
             var db = scope.ServiceProvider.GetRequiredService<CompendiumDbContext>();
             var unresolved = await db.IntegrationOutbox.LongCountAsync(
                 message => message.Status == IntegrationMessageStatus.Pending
-                    || message.Status == IntegrationMessageStatus.Failed,
+                    || message.Status == IntegrationMessageStatus.Failed
+                    || message.Status == IntegrationMessageStatus.Processing,
                 cancellationToken);
 
             CompendiumTelemetry.SetPendingOutboxMessages(unresolved);

@@ -54,17 +54,36 @@ public sealed class IntegrationOutbox
 
     public string? LastError { get; private set; }
 
+    public Guid? ClaimToken { get; private set; }
+
+    public string? ProcessingOwner { get; private set; }
+
+    public DateTimeOffset? ProcessingStartedAtUtc { get; private set; }
+
+    public DateTimeOffset? LeaseExpiresAtUtc { get; private set; }
+
     public DateTimeOffset CreatedAtUtc { get; private set; }
 
     public DateTimeOffset UpdatedAtUtc { get; private set; }
 
     public List<IntegrationOutboxField> Fields { get; private set; } = [];
 
+    internal void MarkClaimed(Guid claimToken, string processingOwner, DateTimeOffset now, DateTimeOffset leaseExpiresAtUtc)
+    {
+        Status = IntegrationMessageStatus.Processing;
+        ClaimToken = claimToken;
+        ProcessingOwner = processingOwner;
+        ProcessingStartedAtUtc = now;
+        LeaseExpiresAtUtc = leaseExpiresAtUtc;
+        UpdatedAtUtc = now;
+    }
+
     public void MarkPublished(DateTimeOffset now)
     {
         Status = IntegrationMessageStatus.Published;
         PublishedAtUtc = now;
         LastError = null;
+        ClearClaim();
         UpdatedAtUtc = now;
     }
 
@@ -76,6 +95,15 @@ public sealed class IntegrationOutbox
             ? IntegrationMessageStatus.DeadLetter
             : IntegrationMessageStatus.Failed;
         AvailableAtUtc = now.Add(retryDelay);
+        ClearClaim();
         UpdatedAtUtc = now;
+    }
+
+    private void ClearClaim()
+    {
+        ClaimToken = null;
+        ProcessingOwner = null;
+        ProcessingStartedAtUtc = null;
+        LeaseExpiresAtUtc = null;
     }
 }
